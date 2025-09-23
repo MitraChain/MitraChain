@@ -30,7 +30,7 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
-  apps/fe-merchant:
+  apps/fe-mitra:
     dependencies:
       '@workspace/ui':
         specifier: workspace:*
