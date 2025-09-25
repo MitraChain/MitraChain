@@ -1,9 +1,6 @@
 use cardano/transaction.{Transaction, OutputReference}
-use aiken/list
-use aiken/string
-use aiken/bytearray
+use aiken/builtin
 
-//SC UNTUK MENYIMPAN DATA TRANSAKSI KE CHAIN
 // Struktur data transaksi yang kita log
 type PurchaseDatum {
   order_id: ByteArray,      // hash unik dari order
@@ -13,19 +10,23 @@ type PurchaseDatum {
 }
 
 // Validator untuk log transaksi
-validator LogTransaksi {
+validator log_transaksi {
   // Hanya ada `spend` karena kita cuma nyimpen data immutable
-  spend(datum: Option<Data>, _redeemer: Data, _utxo: OutputReference, self: Transaction) -> Bool {
-    // Pastikan ada datum
+  spend(datum: Option<Data>, _redeemer: Data, _utxo: OutputReference, _self: Transaction) -> Bool {
     when datum is {
-      Some(d) ->
-        let parsed: PurchaseDatum = from_data(d)
-
-        // Validasi amount > 0 && order_id != kosong
-        parsed.amount > 0 && list.length(parsed.order_id) > 0
-
+      Some(d) -> {
+        expect parsed: PurchaseDatum = d
+        let PurchaseDatum { order_id, customer, amount, timestamp } = parsed
+        
+        // Validasi
+        and {
+          amount > 0,
+          builtin.length_of_bytearray(order_id) > 0,
+          builtin.length_of_bytearray(customer) > 0,
+          timestamp > 0
+        }
+      }
       None -> False
     }
   }
 }
-
