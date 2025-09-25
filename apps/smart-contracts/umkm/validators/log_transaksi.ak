@@ -1,5 +1,5 @@
 use cardano/transaction.{Transaction, OutputReference}
-use aiken/builtin
+use aiken/primitive/bytearray
 
 // Struktur data transaksi yang kita log
 type PurchaseDatum {
@@ -21,8 +21,8 @@ validator log_transaksi {
         // Validasi
         and {
           amount > 0,
-          builtin.length_of_bytearray(order_id) > 0,
-          builtin.length_of_bytearray(customer) > 0,
+          bytearray.length(order_id) > 0,
+          bytearray.length(customer) > 0,
           timestamp > 0
         }
       }
