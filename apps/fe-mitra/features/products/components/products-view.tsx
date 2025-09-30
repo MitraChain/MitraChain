@@ -1,5 +1,7 @@
 'use client'
 
+import { useDebounce } from '@uidotdev/usehooks'
+import { getErrorMessage } from '@workspace/lib/index'
 import { Button } from '@workspace/ui/components/button'
 import {
   Dialog,
@@ -9,6 +11,13 @@ import {
   DialogTrigger,
 } from '@workspace/ui/components/dialog'
 import { Input } from '@workspace/ui/components/input'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@workspace/ui/components/pagination'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useGetProducts } from '../api/get-products'
@@ -16,13 +25,17 @@ import ProductForm from './product-form'
 import ProductItem from './product-item'
 
 export function ProductsView() {
-  const { data, error, isLoading } = useGetProducts()
+  const [page, setPage] = useState(1)
   const [openCreate, setOpenCreate] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
+  const { data, error, isLoading, isFetching } = useGetProducts({
+    page,
+    search: debouncedSearch,
+  })
 
-  const products = (data ?? []).filter((p) =>
-    p.name.toLowerCase().includes(search.trim().toLowerCase()),
-  )
+  const products = data?.data ?? []
+  const meta = data?.meta
 
   // useEffect(() => {
   //   const supabase = createClient()
@@ -53,7 +66,6 @@ export function ProductsView() {
             </DialogHeader>
             <ProductForm
               onSuccess={async () => {
-                // await mutate()
                 setOpenCreate(false)
                 toast.success('Product created')
               }}
@@ -67,21 +79,51 @@ export function ProductsView() {
         <Input
           placeholder="Search products..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="font-sans"
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
         />
       </div>
 
-      {isLoading ? (
-        <div className="text-muted-foreground text-sm">Loading...</div>
-      ) : products.length === 0 ? (
-        <div className="text-muted-foreground text-sm">No products found.</div>
-      ) : (
+      {(isLoading || isFetching) && <div>Loading...</div>}
+      {!isLoading && !isFetching && error && <div>Error: {getErrorMessage(error)}</div>}
+      {!isLoading && !isFetching && !error && products.length === 0 && (
+        <div>No products found.</div>
+      )}
+
+      {!isLoading && !error && products.length > 0 && (
         <div className="grid gap-3">
           {products.map((p) => (
             <ProductItem key={p.id} product={p} />
           ))}
         </div>
+      )}
+
+      {meta && meta.totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                className={meta.currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <span className="p-2 text-sm">
+                Page {meta.currentPage} of {meta.totalPages}
+              </span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPages))}
+                className={
+                  meta.currentPage === meta.totalPages ? 'pointer-events-none opacity-50' : ''
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   )
