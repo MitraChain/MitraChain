@@ -20,9 +20,9 @@ import {
 } from '@workspace/ui/components/pagination'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useGetProducts } from '../api/get-products'
+import { PRODUCTS_PAGE_SIZE, useGetProducts } from '../api/get-products'
 import ProductForm from './product-form'
-import ProductItem from './product-item'
+import ProductItem, { ProductItemSkeleton } from './product-item'
 
 export function ProductsView() {
   const [page, setPage] = useState(1)
@@ -86,7 +86,10 @@ export function ProductsView() {
         />
       </div>
 
-      {(isLoading || isFetching) && <div>Loading...</div>}
+      {isLoading &&
+        Array.from({ length: PRODUCTS_PAGE_SIZE }).map((_, index) => (
+          <ProductItemSkeleton key={index} />
+        ))}
       {!isLoading && !isFetching && error && <div>Error: {getErrorMessage(error)}</div>}
       {!isLoading && !isFetching && !error && products.length === 0 && (
         <div>No products found.</div>
