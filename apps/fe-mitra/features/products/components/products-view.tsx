@@ -22,7 +22,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { PRODUCTS_PAGE_SIZE, useGetProducts } from '../api/get-products'
 import ProductForm from './product-form'
-import ProductItem, { ProductItemSkeleton } from './product-item'
+import ProductItem from './product-item'
+import { ProductItemSkeleton } from './product-item-skeleton'
 
 export function ProductsView() {
   const [page, setPage] = useState(1)
