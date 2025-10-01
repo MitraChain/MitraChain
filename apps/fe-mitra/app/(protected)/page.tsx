@@ -1,12 +1,32 @@
-import { Button } from '@workspace/ui/components/button'
+import { createClient } from '@/lib/supabase/server'
 
-export default function Page() {
+import { LogoutButton } from '@/features/auth/components/logout-button'
+import { CreateBusinessForm } from '@/features/business/components/create-business-form'
+import Hello from '@/features/dashboard/components/hello'
+
+export default async function Page() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('id, name')
+    .eq('owner_id', user?.id)
+    .single()
+
+  if (!business) {
+    return <CreateBusinessForm />
+  }
+
   return (
-    <div className="flex min-h-svh items-center justify-center">
-      <div className="flex flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold">Hello World, this is Merchant Home</h1>
-        <Button size="sm">Button</Button>
+    <>
+      <Hello />
+      <div className="fixed bottom-6 left-6">
+        <LogoutButton />
       </div>
-    </div>
+    </>
   )
 }

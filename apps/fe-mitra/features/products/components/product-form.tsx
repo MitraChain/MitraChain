@@ -1,5 +1,6 @@
 'use client'
 
+import { useGetUser } from '@/features/auth/api/get-user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMaskito } from '@maskito/react'
 import {
@@ -19,6 +20,7 @@ import {
 } from '@workspace/ui/components/form'
 import { Input } from '@workspace/ui/components/input'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { schemaAddProduct, SchemaAddProduct, useAddProduct } from '../api/create-product'
 import { useEditProduct } from '../api/edit-product'
 
@@ -29,6 +31,7 @@ type Props = {
 }
 
 function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
+  const { data: userData } = useGetUser()
   const priceMaskitoRef = useMaskito({ options: rupiahMaskOptions })
   const isEdit = Boolean(initialProduct)
 
@@ -47,7 +50,7 @@ function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
     resolver: zodResolver(schemaAddProduct),
     defaultValues: {
       name: initialProduct?.name ?? '',
-      price: transformNumberToRupiahMask(initialProduct?.price ?? 0),
+      price: initialProduct?.price ? transformNumberToRupiahMask(initialProduct?.price) : '',
     },
     mode: 'onSubmit',
   })
@@ -55,8 +58,10 @@ function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
   const onSubmit = (values: SchemaAddProduct) => {
     if (isEdit && initialProduct) {
       editMutation.mutate({ productId: initialProduct.id, values })
+    } else if (!userData?.business) {
+      toast.error('Business not found')
     } else {
-      addMutation.mutate(values)
+      addMutation.mutate({ values, businessId: userData?.business.id ?? '' })
     }
   }
 
@@ -93,6 +98,7 @@ function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
               <FormControl>
                 <Input
                   id="product-price"
+                  placeholder="Rp10.000"
                   {...field}
                   {...withMaskitoRegister(form.register('price'), priceMaskitoRef)}
                 />

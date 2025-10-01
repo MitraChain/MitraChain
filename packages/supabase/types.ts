@@ -14,54 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
+      businesses: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string | null
+          owner_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
+          business_id: string
           created_at: string
-          id: number
-          nft_id: string | null
-          umkm_id: string
+          id: string
+          nft_id: string
+          points: number
+          stamps: number
           user_id: string
           wallet_address: string
         }
         Insert: {
-          created_at?: string
-          id?: number
-          nft_id?: string | null
-          umkm_id?: string
-          user_id?: string
-          wallet_address?: string
+          business_id: string
+          created_at: string
+          id?: string
+          nft_id: string
+          points: number
+          stamps: number
+          user_id: string
+          wallet_address: string
         }
         Update: {
+          business_id?: string
           created_at?: string
-          id?: number
-          nft_id?: string | null
-          umkm_id?: string
+          id?: string
+          nft_id?: string
+          points?: number
+          stamps?: number
           user_id?: string
           wallet_address?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "memberships_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
+          business_id: string
           created_at: string
           id: string
-          merchant_id: string
           name: string
           price: number
         }
         Insert: {
+          business_id: string
           created_at?: string
           id?: string
-          merchant_id: string
           name: string
           price: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_items: {
+        Row: {
+          price_at_purchase: number
+          product_id: string
+          quantity: number
+          transaction_id: string
+        }
+        Insert: {
+          price_at_purchase: number
+          product_id?: string
+          quantity: number
+          transaction_id?: string
+        }
+        Update: {
+          price_at_purchase?: number
+          product_id?: string
+          quantity?: number
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          merchant_id: string
+          onchain_proof_hash: string
+          qris_tx_id: string
+          total_amount: number
+        }
+        Insert: {
+          created_at: string
+          id?: string
+          merchant_id: string
+          onchain_proof_hash: string
+          qris_tx_id: string
+          total_amount: number
         }
         Update: {
           created_at?: string
           id?: string
           merchant_id?: string
-          name?: string
-          price?: number
+          onchain_proof_hash?: string
+          qris_tx_id?: string
+          total_amount?: number
         }
         Relationships: []
       }

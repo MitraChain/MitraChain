@@ -1,5 +1,6 @@
 'use client'
 
+import { useGetUser } from '@/features/auth/api/get-user'
 import { useDebounce } from '@uidotdev/usehooks'
 import { getErrorMessage } from '@workspace/lib/index'
 import { Button } from '@workspace/ui/components/button'
@@ -26,22 +27,19 @@ import ProductItem from './product-item'
 import { ProductItemSkeleton } from './product-item-skeleton'
 
 export function ProductsView() {
+  const { data: userData } = useGetUser()
   const [page, setPage] = useState(1)
   const [openCreate, setOpenCreate] = useState(false)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
   const { data, error, isLoading, isFetching } = useGetProducts({
+    businessId: userData?.business?.id ?? '',
     page,
     search: debouncedSearch,
   })
 
   const products = data?.data ?? []
   const meta = data?.meta
-
-  // useEffect(() => {
-  //   const supabase = createClient()
-  //   supabase.auth.signInWithPassword({ email: 'vnusoo123@gmail.com', password: 'Yuhuu123' })
-  // }, [])
 
   if (error) {
     return (
