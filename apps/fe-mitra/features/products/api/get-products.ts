@@ -9,7 +9,9 @@ export const PRODUCTS_PAGE_SIZE = 10
 export const getProducts = async ({
   page = 1,
   search = '',
+  businessId,
 }: {
+  businessId: string
   page?: number
   search?: string
 }): Promise<PaginatedResponse<Product>> => {
@@ -17,7 +19,10 @@ export const getProducts = async ({
   const from = (page - 1) * PRODUCTS_PAGE_SIZE
   const to = from + PRODUCTS_PAGE_SIZE - 1
 
-  let query = supabase.from('products').select('*', { count: 'exact' })
+  let query = supabase
+    .from('products')
+    .select('*', { count: 'exact' })
+    .eq('business_id', businessId)
 
   if (search) {
     query = query.ilike('name', `%${search.trim()}%`)
@@ -50,16 +55,18 @@ export const useGetProducts = ({
   queryConfig,
   page,
   search,
+  businessId,
 }: {
   queryConfig?: QueryConfig<typeof getProducts>
   page?: number
   search?: string
-} = {}) => {
+  businessId: string
+}) => {
   const { ...restConfig } = queryConfig || {}
 
   return useQuery({
-    queryKey: ['products', { page, search }],
-    queryFn: () => getProducts({ page, search }),
+    queryKey: ['products', businessId, { page, search }],
+    queryFn: () => getProducts({ page, search, businessId }),
     ...restConfig,
   })
 }

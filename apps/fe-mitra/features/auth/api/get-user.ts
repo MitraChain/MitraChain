@@ -1,18 +1,33 @@
+'use client'
+
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { useQuery } from '@tanstack/react-query'
 import { QueryConfig } from '@workspace/query-config'
+import { Business } from '@workspace/supabase/index'
 
-export const getUser = async (): Promise<User | null> => {
+export const getUser = async (): Promise<{ user: User | null; business: Business }> => {
   const supabase = createClient()
-  const { data, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error) {
-    console.error('Error fetching user:', error.message)
-    return null
+    throw new Error(error.message || 'Error fetching user')
   }
 
-  return data.user
+  const { data: business, error: businessError } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', user?.id)
+    .single()
+
+  if (businessError) {
+    console.error('Error fetching business:', businessError.message)
+  }
+
+  return { user: user, business }
 }
 
 type QueryFnType = typeof getUser

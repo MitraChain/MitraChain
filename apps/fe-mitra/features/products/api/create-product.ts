@@ -27,7 +27,13 @@ export const schemaAddProduct = z.object({
 
 export type SchemaAddProduct = z.infer<typeof schemaAddProduct>
 
-export const addProduct = async (values: SchemaAddProduct): Promise<Product> => {
+export const addProduct = async ({
+  values,
+  businessId,
+}: {
+  values: SchemaAddProduct
+  businessId: string
+}): Promise<Product> => {
   const supabase = createClient()
   const {
     data: { user },
@@ -40,7 +46,7 @@ export const addProduct = async (values: SchemaAddProduct): Promise<Product> => 
   const productData: ProductInsert = {
     ...values,
     price: parseRupiahMaskToNumber(values.price),
-    merchant_id: user.id,
+    business_id: businessId,
   }
 
   const { data, error } = await supabase.from('products').insert(productData).select().single()
