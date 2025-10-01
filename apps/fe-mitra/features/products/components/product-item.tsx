@@ -1,6 +1,6 @@
 'use client'
 
-import { formatCurrency } from '@workspace/lib/index'
+import { transformNumberToRupiahMask } from '@workspace/lib/index'
 import { Product } from '@workspace/supabase/index'
 import {
   AlertDialog,
@@ -49,7 +49,9 @@ function ProductItem({ product }: Readonly<Props>) {
     <div className="bg-card text-card-foreground flex items-center justify-between rounded-lg border p-4">
       <div className="min-w-0">
         <div className="text-pretty font-medium">{product.name}</div>
-        <div className="text-muted-foreground text-sm">{formatCurrency(product.price)}</div>
+        <div className="text-muted-foreground text-sm">
+          {transformNumberToRupiahMask(product.price)}
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>

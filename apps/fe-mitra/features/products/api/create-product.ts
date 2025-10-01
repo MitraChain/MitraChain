@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { parseRupiahMaskToNumber } from '@workspace/lib/maskito'
 import { MutationConfig } from '@workspace/query-config'
 import { Product } from '@workspace/supabase/index'
 import { Database } from '@workspace/supabase/types'
@@ -10,7 +11,18 @@ type ProductInsert = Database['public']['Tables']['products']['Insert']
 
 export const schemaAddProduct = z.object({
   name: z.string().min(1, { message: 'Product name is required.' }),
-  price: z.coerce.number().min(1, { message: 'Product price is required.' }),
+  price: z
+    .string()
+    .min(1, { message: 'Product price is required.' })
+    .refine(
+      (value) => {
+        const numericString = parseRupiahMaskToNumber(value)
+        return numericString > 0
+      },
+      {
+        message: 'Price must contain a valid number.',
+      },
+    ),
 })
 
 export type SchemaAddProduct = z.infer<typeof schemaAddProduct>
@@ -27,6 +39,7 @@ export const addProduct = async (values: SchemaAddProduct): Promise<Product> => 
 
   const productData: ProductInsert = {
     ...values,
+    price: parseRupiahMaskToNumber(values.price),
     merchant_id: user.id,
   }
 

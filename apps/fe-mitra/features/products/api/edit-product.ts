@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { createClient } from '@/lib/supabase/client'
+import { parseRupiahMaskToNumber } from '@workspace/lib/maskito'
 import { MutationConfig } from '@workspace/query-config'
 import { Product } from '@workspace/supabase/index'
 import { Database } from '@workspace/supabase/types'
@@ -17,7 +18,7 @@ export const editProduct = async ({
   values: SchemaAddProduct
 }): Promise<Product> => {
   const supabase = createClient()
-  const productData: ProductUpdate = values
+  const productData: ProductUpdate = { ...values, price: parseRupiahMaskToNumber(values.price) }
 
   const { data, error } = await supabase
     .from('products')
@@ -44,13 +45,7 @@ export const useEditProduct = ({
   return useMutation({
     mutationFn: editProduct,
     onSuccess: (data, ...args) => {
-      // Update the specific product in the 'products' list query
-      queryClient.setQueryData<Product[]>(['products'], (oldData = []) =>
-        oldData.map((product) => (product.id === data.id ? data : product)),
-      )
-
-      queryClient.invalidateQueries({ queryKey: ['products', data.id] })
-
+      queryClient.invalidateQueries({ queryKey: ['products'] })
       toast.success(`Product "${data.name}" updated successfully!`)
       onSuccess?.(data, ...args)
     },

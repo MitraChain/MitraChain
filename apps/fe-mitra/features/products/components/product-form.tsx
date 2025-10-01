@@ -1,6 +1,12 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMaskito } from '@maskito/react'
+import {
+  rupiahMaskOptions,
+  transformNumberToRupiahMask,
+  withMaskitoRegister,
+} from '@workspace/lib/maskito'
 import { Product } from '@workspace/supabase/index'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -23,6 +29,7 @@ type Props = {
 }
 
 function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
+  const priceMaskitoRef = useMaskito({ options: rupiahMaskOptions })
   const isEdit = Boolean(initialProduct)
 
   const addMutation = useAddProduct({
@@ -40,7 +47,7 @@ function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
     resolver: zodResolver(schemaAddProduct),
     defaultValues: {
       name: initialProduct?.name ?? '',
-      price: initialProduct?.price ?? undefined,
+      price: transformNumberToRupiahMask(initialProduct?.price ?? 0),
     },
     mode: 'onSubmit',
   })
@@ -86,14 +93,8 @@ function ProductForm({ initialProduct, onSuccess, onCancel }: Readonly<Props>) {
               <FormControl>
                 <Input
                   id="product-price"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
-                  placeholder="0.00"
-                  className="font-sans"
-                  value={field.value as any}
-                  onChange={(e) => field.onChange(e.target.value)}
+                  {...field}
+                  {...withMaskitoRegister(form.register('price'), priceMaskitoRef)}
                 />
               </FormControl>
               <FormMessage />
