@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      businesses: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string | null
+          owner_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string
@@ -64,6 +88,77 @@ export type Database = {
           price?: number
         }
         Relationships: []
+      }
+      transaction_items: {
+        Row: {
+          id: number
+          price: number
+          product_id: string
+          quantity: number
+          transaction_id: string
+        }
+        Insert: {
+          id?: number
+          price: number
+          product_id: string
+          quantity: number
+          transaction_id: string
+        }
+        Update: {
+          id?: number
+          price?: number
+          product_id?: string
+          quantity?: number
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: number
+          merchant_id: string
+          total: number
+        }
+        Insert: {
+          created_at: string
+          id?: string
+          member_id: number
+          merchant_id: string
+          total: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: number
+          merchant_id?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -13,5 +13,5 @@ export default async function ProtectedLayout({ children }: PropsWithChildren) {
     return redirect('/auth')
   }
 
-  return children
+  return <div className="h-0 min-h-dvh">{children}</div>
 }
