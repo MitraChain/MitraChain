@@ -17,20 +17,15 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${requestUrl.origin}/register?error=auth_failed`)
     }
 
-    // Check apakah user sudah punya wallet
     if (user) {
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      const userCreatedAt = new Date(user.created_at)
+      const now = new Date()
+      const diffInMinutes = (now.getTime() - userCreatedAt.getTime()) / 1000 / 60
 
-      // Jika user baru, redirect ke onboarding untuk create wallet
-      if (!existingUser) {
+      if (diffInMinutes < 5) {
         return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
       }
 
-      // Jika sudah ada, langsung ke dashboard
       return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
     }
   }

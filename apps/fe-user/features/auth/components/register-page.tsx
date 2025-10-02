@@ -1,8 +1,10 @@
 'use client'
 
+import { getUserQueryKey } from '@/features/auth/api/get-user'
 import { schemaRegister, useRegister } from '@/features/auth/api/register'
 import { createClient } from '@/lib/supabase/client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@workspace/ui/components/button'
 import {
   Card,
@@ -23,9 +25,11 @@ type RegisterFormValues = z.infer<typeof schemaRegister>
 
 export default function RegisterPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const supabase = createClient()
   const registerMutation = useRegister()
   const [isVerified, setIsVerified] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
   const {
     register,
@@ -39,7 +43,22 @@ export default function RegisterPage() {
     },
   })
 
-  // Polling untuk check apakah user sudah verify email
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session) {
+        router.push('/dashboard')
+      } else {
+        setIsCheckingAuth(false)
+      }
+    }
+
+    checkExistingSession()
+  }, [supabase, router])
+
   useEffect(() => {
     if (!registerMutation.isSuccess) return
 
@@ -50,19 +69,19 @@ export default function RegisterPage() {
 
       if (session) {
         setIsVerified(true)
-        // Auto redirect ke dashboard setelah 2 detik
+
+        // Invalidate user cache
+        queryClient.invalidateQueries({ queryKey: getUserQueryKey() })
+
         setTimeout(() => {
-          router.push('/dashboard')
-        }, 2000)
+          router.push('/onboarding')
+        }, 1500)
       }
     }
 
-    // Check setiap 2 detik
     const interval = setInterval(checkAuthStatus, 2000)
-
-    // Cleanup
     return () => clearInterval(interval)
-  }, [registerMutation.isSuccess, supabase, router])
+  }, [registerMutation.isSuccess, supabase, router, queryClient])
 
   const onSubmit = async (values: RegisterFormValues) => {
     await registerMutation.mutateAsync(values)
@@ -70,7 +89,14 @@ export default function RegisterPage() {
 
   const emailValue = watch('email')
 
-  // State: Email sudah diverifikasi
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
   if (isVerified) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -85,51 +111,48 @@ export default function RegisterPage() {
           <CardContent className="space-y-4">
             <div className="rounded-lg border bg-green-50 p-4 dark:bg-green-950">
               <p className="text-sm text-green-800 dark:text-green-200">
-                Verifikasi berhasil! Anda akan dialihkan ke dashboard...
+                Verifikasi berhasil! Mempersiapkan wallet Anda...
               </p>
             </div>
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
-              Lanjut ke Dashboard
-            </Button>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  // State: Menunggu verifikasi email
   if (registerMutation.isSuccess) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Cek Email Anda</CardTitle>
-            <CardDescription>Kami telah mengirimkan link verifikasi ke email Anda</CardDescription>
+            <CardDescription>Kami telah mengirimkan link verifikasi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-muted rounded-lg border p-4">
               <p className="text-muted-foreground text-sm">
-                Silakan cek email <strong className="text-foreground">{emailValue}</strong> dan klik
-                link untuk melanjutkan registrasi.
+                Email dikirim ke <strong className="text-foreground">{emailValue}</strong>
+              </p>
+              <p className="text-muted-foreground mt-2 text-xs">
+                Klik link di email untuk melanjutkan
               </p>
             </div>
 
-            {/* Loading indicator - menunggu verifikasi */}
             <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed p-4">
               <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
-              <p className="text-muted-foreground text-sm">Menunggu verifikasi email...</p>
+              <p className="text-muted-foreground text-sm">Menunggu verifikasi...</p>
             </div>
 
-            <div className="text-center">
-              <p className="text-muted-foreground text-xs">
-                Belum menerima email?{' '}
-                <button
-                  onClick={() => registerMutation.reset()}
-                  className="text-primary hover:underline"
-                >
-                  Kirim ulang
-                </button>
-              </p>
+            <div className="text-muted-foreground space-y-2 text-center text-xs">
+              <p>Belum menerima email?</p>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => registerMutation.reset()}
+                className="h-auto p-0"
+              >
+                Kirim ulang
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -137,7 +160,6 @@ export default function RegisterPage() {
     )
   }
 
-  // State: Form registrasi
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -153,6 +175,7 @@ export default function RegisterPage() {
                 id="email"
                 type="email"
                 placeholder="nama@email.com"
+                autoComplete="email"
                 {...register('email')}
                 disabled={isSubmitting}
               />
@@ -160,7 +183,14 @@ export default function RegisterPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Memproses...' : 'Daftar'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                'Daftar'
+              )}
             </Button>
           </form>
         </CardContent>
