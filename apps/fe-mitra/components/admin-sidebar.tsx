@@ -19,7 +19,7 @@ const NAVIGATION = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Transactions', href: '/transactions', icon: Receipt },
-  { name: 'Loyalty Programs', href: '/loyalty', icon: Gift },
+  { name: 'Loyalty Programs', href: '/reward-programs', icon: Gift },
 ]
 
 export function AdminSidebar() {
