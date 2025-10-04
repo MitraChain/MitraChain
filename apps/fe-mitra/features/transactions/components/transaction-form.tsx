@@ -91,107 +91,106 @@ function TransactionForm({ onCancel }: { onCancel?: () => void }) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-        {memberships.length > 1 && (
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <h1 className="mb-4 text-xl font-semibold">Complete Transaction</h1>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+          {memberships.length > 1 && (
+            <FormField
+              control={form.control}
+              name="membership_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="membership-id">Customer Membership</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger id="membership-id">
+                        <SelectValue placeholder="Select a membership" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {memberships.map((membership) => (
+                        <SelectItem key={membership.id} value={membership.id}>
+                          {membership.businesses[0]?.name || 'Unknown Business'} -{' '}
+                          {membership.wallet_address?.slice(0, 6)}...
+                          {membership.wallet_address?.slice(-4)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
-            name="membership_id"
+            name="qris_tx_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="membership-id">Customer Membership</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger id="membership-id">
-                      <SelectValue placeholder="Select a membership" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {memberships.map((membership) => (
-                      <SelectItem key={membership.id} value={membership.id}>
-                        {membership.businesses[0]?.name || 'Unknown Business'} -{' '}
-                        {membership.wallet_address?.slice(0, 6)}...
-                        {membership.wallet_address?.slice(-4)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel htmlFor="qris-tx-id">QRIS Transaction ID</FormLabel>
+                <FormControl>
+                  <Input
+                    id="qris-tx-id"
+                    placeholder="Enter QRIS Transaction ID"
+                    className="font-sans"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        )}
-
-        <FormField
-          control={form.control}
-          name="qris_tx_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="qris-tx-id">QRIS Transaction ID</FormLabel>
-              <FormControl>
-                <Input
-                  id="qris-tx-id"
-                  placeholder="Enter QRIS Transaction ID"
-                  className="font-sans"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="total_amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="total-amount">Total Amount</FormLabel>
-              <FormControl>
-                <Input
-                  id="total-amount"
-                  placeholder="Rp10.000"
-                  readOnly={Boolean(total)}
-                  {...field}
-                  {...withMaskitoRegister(form.register('total_amount'), priceMaskitoRef)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="onchain_proof_hash"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="onchain-proof-hash">Onchain Proof Hash</FormLabel>
-              <FormControl>
-                <Input
-                  id="onchain-proof-hash"
-                  placeholder="Enter blockchain proof hash"
-                  className="font-sans"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Creating...' : 'Create'}
-          </Button>
-          {onCancel ? (
-            <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
-              Cancel
+          <FormField
+            control={form.control}
+            name="total_amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="total-amount">Total Amount</FormLabel>
+                <FormControl>
+                  <Input
+                    id="total-amount"
+                    placeholder="Rp10.000"
+                    readOnly={Boolean(total)}
+                    {...field}
+                    {...withMaskitoRegister(form.register('total_amount'), priceMaskitoRef)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="onchain_proof_hash"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="onchain-proof-hash">Onchain Proof Hash</FormLabel>
+                <FormControl>
+                  <Input
+                    id="onchain-proof-hash"
+                    placeholder="Enter blockchain proof hash"
+                    className="font-sans"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Creating...' : 'Create'}
             </Button>
-          ) : null}
-        </div>
-      </form>
-    </Form>
+            {onCancel ? (
+              <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 }
 

@@ -1,9 +1,3 @@
-import SelectItem from '@/features/transactions/components/select-items'
+import CreateTransaction from '@/features/transactions/components/create-transaction-page'
 
-export default function ConfirmTransactionPage() {
-  return (
-    <main className="min-h-dvh">
-      <SelectItem />
-    </main>
-  )
-}
+export default CreateTransaction

@@ -2,15 +2,14 @@
 
 import { useGetUser } from '@/features/auth/api/get-user'
 import { PRODUCTS_PAGE_SIZE, useGetProducts } from '@/features/products/api/get-products'
-import TransactionForm from '@/features/transactions/components/transaction-form'
 import { Separator } from '@radix-ui/react-select'
 import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent } from '@workspace/ui/components/card'
 import Link from 'next/link'
-import { useState } from 'react'
 import { toast } from 'sonner'
 import { useCartStore } from '../store/cart-store'
+import { useStepStore } from '../store/step-store'
 import { TransactionItemSkeleton } from './transaction-item-skeleton'
 
 function ProductQuantity({ productId }: { productId: string }) {
@@ -18,9 +17,8 @@ function ProductQuantity({ productId }: { productId: string }) {
   return <span className="w-6 text-center">{quantity}</span>
 }
 
-function SelectItem() {
-  const [showForm, setShowForm] = useState(false)
-
+function SelectItems() {
+  const { setStep } = useStepStore()
   const { data: userData, isPending: isPendingUser } = useGetUser()
 
   const {
@@ -40,15 +38,6 @@ function SelectItem() {
   const isCartEmpty = useCartStore((state) => state.items.size === 0)
 
   const isLoading = isPendingProducts || isPendingUser
-
-  if (showForm) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="mb-4 text-xl font-semibold">Complete Transaction</h1>
-        <TransactionForm onCancel={() => setShowForm(false)} />
-      </div>
-    )
-  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -107,7 +96,7 @@ function SelectItem() {
                       toast.error('Please select at least one product.')
                       return
                     }
-                    setShowForm(true)
+                    setStep('finalization')
                   }}
                   disabled={isCartEmpty}
                 >
@@ -122,4 +111,4 @@ function SelectItem() {
   )
 }
 
-export default SelectItem
+export default SelectItems
