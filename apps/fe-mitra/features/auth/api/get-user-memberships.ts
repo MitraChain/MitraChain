@@ -1,37 +1,16 @@
 import { createClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
+import { QueryConfig } from '@workspace/query-config'
+import { useGetUser } from './get-user'
 
-export const getUserMemberships = async () => {
+export const getUserMemberships = async ({ businessId }: { businessId: string }) => {
   const supabase = createClient()
-  
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Not authenticated')
-  }
-
-  // Get businesses owned by current user
-  const { data: businesses, error: businessError } = await supabase
-    .from('businesses')
-    .select('id')
-    .eq('owner_id', user.id)
-
-  if (businessError) {
-    throw new Error('Failed to fetch businesses')
-  }
-
-  if (!businesses || businesses.length === 0) {
-    return []
-  }
-
-  const businessIds = businesses.map((b) => b.id)
 
   // Get memberships for those businesses
   const { data: memberships, error: membershipError } = await supabase
     .from('memberships')
-    .select(`
+    .select(
+      `
       id,
       business_id,
       user_id,
@@ -40,19 +19,30 @@ export const getUserMemberships = async () => {
         id,
         name
       )
-    `)
-    .in('business_id', businessIds)
+    `,
+    )
+    .eq('business_id', businessId)
 
   if (membershipError) {
     throw new Error('Failed to fetch memberships')
   }
 
-  return memberships || []
+  return { data: memberships }
 }
 
-export const useGetUserMemberships = () => {
+export const useGetUserMemberships = ({
+  queryConfig,
+}: {
+  queryConfig?: QueryConfig<typeof getUserMemberships>
+} = {}) => {
+  const { data: authSession } = useGetUser()
+  const businessId = authSession?.business?.id
+
+  const { ...restConfig } = queryConfig || {}
+
   return useQuery({
-    queryKey: ['user-memberships'],
-    queryFn: getUserMemberships,
+    queryKey: ['user-memberships', { businessId }],
+    queryFn: () => getUserMemberships({ businessId: businessId! }),
+    ...restConfig,
   })
 }
