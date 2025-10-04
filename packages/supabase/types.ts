@@ -111,20 +111,64 @@ export type Database = {
           },
         ]
       }
+      reward_programs: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          reward_description: string
+          threshold: number
+          type: Database["public"]["Enums"]["reward_program_type"]
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          reward_description: string
+          threshold?: number
+          type?: Database["public"]["Enums"]["reward_program_type"]
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          reward_description?: string
+          threshold?: number
+          type?: Database["public"]["Enums"]["reward_program_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_programs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_items: {
         Row: {
+          id: number
           price_at_purchase: number
           product_id: string
           quantity: number
           transaction_id: string
         }
         Insert: {
+          id?: number
           price_at_purchase: number
-          product_id?: string
+          product_id: string
           quantity: number
           transaction_id?: string
         }
         Update: {
+          id?: number
           price_at_purchase?: number
           product_id?: string
           quantity?: number
@@ -151,7 +195,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          merchant_id: string
+          membership_id: string
           onchain_proof_hash: string
           qris_tx_id: string
           total_amount: number
@@ -159,7 +203,7 @@ export type Database = {
         Insert: {
           created_at: string
           id?: string
-          merchant_id: string
+          membership_id: string
           onchain_proof_hash: string
           qris_tx_id: string
           total_amount: number
@@ -167,12 +211,20 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          merchant_id?: string
+          membership_id?: string
           onchain_proof_hash?: string
           qris_tx_id?: string
           total_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -182,7 +234,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      reward_program_type: "stamp" | "point" | "milestone"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -309,6 +361,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      reward_program_type: ["stamp", "point", "milestone"],
+    },
   },
 } as const

@@ -15,6 +15,9 @@ const Hello = () => {
         <Button size="sm" asChild>
           <Link href="/products">View Products</Link>
         </Button>
+        <Button size="sm" asChild>
+          <Link href="/transactions">View Transactions</Link>
+        </Button>
       </div>
     </div>
   )
