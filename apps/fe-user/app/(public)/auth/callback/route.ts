@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { toast } from 'sonner'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -7,6 +8,7 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
+
     const {
       data: { user },
       error,
@@ -18,15 +20,25 @@ export async function GET(request: Request) {
     }
 
     if (user) {
-      const userCreatedAt = new Date(user.created_at)
-      const now = new Date()
-      const diffInMinutes = (now.getTime() - userCreatedAt.getTime()) / 1000 / 60
+      const { data: walletData, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('wallet_address')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      if (diffInMinutes < 5) {
-        return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
+      if (walletError) {
+        console.error('Error checking wallet:', walletError)
       }
 
-      return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
+      if (walletData && walletData.wallet_address) {
+        // User already has wallet → go to dashboard
+        toast.success('Existing user with wallet, redirecting to dashboard')
+        return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
+      }
+
+      // New user without wallet → go to onboarding
+      console.log('New user without wallet, redirecting to onboarding')
+      return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
     }
   }
 
