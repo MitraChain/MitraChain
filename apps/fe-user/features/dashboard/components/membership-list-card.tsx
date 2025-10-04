@@ -11,15 +11,15 @@ export function MembershipListCard() {
   return (
     <Card className="md:col-span-2">
       <CardHeader>
-        <CardTitle>Member di UMKM</CardTitle>
-        <CardDescription>Daftar UMKM tempat Anda menjadi member</CardDescription>
+        <CardTitle>Memberships in SMEs</CardTitle>
+        <CardDescription>List of SMEs where you are registered as a member</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="text-muted-foreground py-12 text-center">
           <QrCodeIcon className="mx-auto mb-4 h-12 w-12 opacity-20" />
-          <p className="font-medium">Anda belum terdaftar di UMKM manapun</p>
+          <p className="font-medium">You are not registered in any SMEs</p>
           <p className="mt-2 text-sm">
-            Tunjukkan QR code di atas kepada kasir untuk mendaftar sebagai member
+            Show the QR code above to the cashier to register as a member
           </p>
         </div>
       </CardContent>

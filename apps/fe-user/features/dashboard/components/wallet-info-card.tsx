@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@workspace/ui/components/button'
 import {
   Card,
@@ -7,13 +9,19 @@ import {
   CardTitle,
 } from '@workspace/ui/components/card'
 import { Copy } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface WalletInfoCardProps {
   walletAddress: string
-  onCopyAddress: () => void
 }
 
-export function WalletInfoCard({ walletAddress, onCopyAddress }: WalletInfoCardProps) {
+export function WalletInfoCard({ walletAddress }: WalletInfoCardProps) {
+  const handleCopy = async () => {
+    if (!walletAddress) return
+    await navigator.clipboard.writeText(walletAddress)
+    toast.success('Wallet address copied to clipboard!')
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -27,7 +35,7 @@ export function WalletInfoCard({ walletAddress, onCopyAddress }: WalletInfoCardP
             <code className="bg-muted flex-1 overflow-x-auto rounded p-2 text-xs">
               {walletAddress || 'Loading...'}
             </code>
-            <Button variant="ghost" size="icon" onClick={onCopyAddress} disabled={!walletAddress}>
+            <Button variant="ghost" size="icon" onClick={handleCopy} disabled={!walletAddress}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>

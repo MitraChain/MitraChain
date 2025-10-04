@@ -1,3 +1,4 @@
+import { useGetUser } from '@/features/auth/api/get-user'
 import { Button } from '@workspace/ui/components/button'
 import {
   Card,
@@ -8,23 +9,48 @@ import {
 } from '@workspace/ui/components/card'
 import { Copy, Download, Loader2, QrCode as QrCodeIcon } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
+import { useMemo } from 'react'
+import { toast } from 'sonner'
 
-interface QRMemberCardProps {
-  qrData: string
-  isLoading?: boolean
-  onCopyUserId: () => void
-  onDownload: () => void
-}
+export function QRMemberCard() {
+  const { data, isLoading } = useGetUser()
 
-export function QRMemberCard({ qrData, isLoading, onCopyUserId, onDownload }: QRMemberCardProps) {
+  const qrData = useMemo(() => {
+    if (!data) return ''
+    return JSON.stringify({
+      user_id: data.user.id,
+      email: data.user.email,
+      wallet_address: data.walletAddress,
+      type: 'mitrachain_member',
+    })
+  }, [data])
+
+  const handleCopyUserId = () => {
+    if (!data) return
+    navigator.clipboard.writeText(data.user.id)
+    toast.success('User ID copied to clipboard!')
+  }
+
+  const handleDownloadQR = () => {
+    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement
+    if (canvas && data) {
+      const url = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.download = `mitrachain-member-${data.user.email?.split('@')[0]}.png`
+      link.href = url
+      link.click()
+      toast.success('QR Code downloaded successfully!')
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCodeIcon className="h-5 w-5" />
-          QR Member Anda
+          Your Member QR
         </CardTitle>
-        <CardDescription>Tunjukkan QR ini saat mendaftar di UMKM</CardDescription>
+        <CardDescription>Show this QR when registering at businesses</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center">
         {isLoading || !qrData ? (
@@ -33,16 +59,16 @@ export function QRMemberCard({ qrData, isLoading, onCopyUserId, onDownload }: QR
           </div>
         ) : (
           <>
-            <div className="rounded-lg bg-white p-4">
-              <QRCodeCanvas id="qr-canvas" value={qrData} size={200} level="H" includeMargin />
+            <div className="rounded-lg bg-white p-1">
+              <QRCodeCanvas id="qr-canvas" value={qrData} size={240} level="H" includeMargin />
             </div>
 
             <div className="mt-4 flex gap-2">
-              <Button variant="outline" size="sm" onClick={onCopyUserId}>
+              <Button variant="outline" size="sm" onClick={handleCopyUserId}>
                 <Copy className="mr-2 h-4 w-4" />
                 Copy ID
               </Button>
-              <Button variant="outline" size="sm" onClick={onDownload}>
+              <Button variant="outline" size="sm" onClick={handleDownloadQR}>
                 <Download className="mr-2 h-4 w-4" />
                 Download
               </Button>
