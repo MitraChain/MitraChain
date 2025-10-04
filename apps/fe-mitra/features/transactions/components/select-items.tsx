@@ -8,10 +8,9 @@ import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent } from '@workspace/ui/components/card'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useCartItems, useCartStore } from '../store/cart-store'
+import { useCartStore } from '../store/cart-store'
 import { TransactionItemSkeleton } from './transaction-item-skeleton'
 
 function ProductQuantity({ productId }: { productId: string }) {
@@ -20,7 +19,6 @@ function ProductQuantity({ productId }: { productId: string }) {
 }
 
 function SelectItem() {
-  const router = useRouter()
   const [showForm, setShowForm] = useState(false)
 
   const { data: userData, isPending: isPendingUser } = useGetUser()
@@ -34,18 +32,12 @@ function SelectItem() {
   })
   const products = productData?.data ?? []
 
-  const { addToCart, removeFromCart, clearCart } = useCartStore()
-  const items = useCartItems()
+  const { addToCart, removeFromCart } = useCartStore()
+
   const total = useCartStore((state) =>
     Array.from(state.items.values()).reduce((sum, item) => sum + item.price * item.quantity, 0),
   )
   const isCartEmpty = useCartStore((state) => state.items.size === 0)
-
-  const cartItemsForSubmit = Array.from(items.values()).map((item) => ({
-    product_id: item.id,
-    quantity: item.quantity,
-    price_at_purchase: item.price,
-  }))
 
   const isLoading = isPendingProducts || isPendingUser
 
@@ -53,16 +45,7 @@ function SelectItem() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="mb-4 text-xl font-semibold">Complete Transaction</h1>
-        <TransactionForm
-          totalAmount={total}
-          cartItems={cartItemsForSubmit}
-          onSuccess={(tx) => {
-            toast.success('Transaction created successfully!')
-            clearCart()
-            router.push('/transactions')
-          }}
-          onCancel={() => setShowForm(false)}
-        />
+        <TransactionForm onCancel={() => setShowForm(false)} />
       </div>
     )
   }

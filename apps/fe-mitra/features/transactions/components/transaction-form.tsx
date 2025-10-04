@@ -1,15 +1,9 @@
 'use client'
 
-import { useGetUser } from '@/features/auth/api/get-user'
 import { useGetUserMemberships } from '@/features/auth/api/get-user-memberships'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMaskito } from '@maskito/react'
-import {
-  rupiahMaskOptions,
-  transformNumberToRupiahMask,
-  withMaskitoRegister,
-} from '@workspace/lib/maskito'
-import { Transaction } from '@workspace/supabase/index'
+import { rupiahMaskOptions, withMaskitoRegister } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
 import {
   Form,
@@ -27,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@workspace/ui/components/select'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -35,58 +30,36 @@ import {
   SchemaAddTransaction,
   useAddTransaction,
 } from '../api/create-transactions'
-import { useEditTransaction } from '../api/edit-transactions'
+import { useCartItems, useCartStore } from '../store/cart-store'
 
-type CartItem = {
-  product_id: string
-  quantity: number
-  price_at_purchase: number
-}
+function TransactionForm({ onCancel }: { onCancel?: () => void }) {
+  const router = useRouter()
+  const items = useCartItems()
+  const cartItemsForSubmit = Array.from(items.values()).map((item) => ({
+    product_id: item.id,
+    quantity: item.quantity,
+    price_at_purchase: item.price,
+  }))
+  const clearCart = useCartStore((state) => state.clearCart)
+  const total = useCartStore((state) =>
+    Array.from(state.items.values()).reduce((sum, item) => sum + item.price * item.quantity, 0),
+  )
 
-type Props = {
-  initialTransaction?: Transaction | null
-  totalAmount?: number
-  cartItems?: CartItem[]
-  onSuccess?: (transaction: Transaction) => void
-  onCancel?: () => void
-}
-
-function TransactionForm({
-  initialTransaction,
-  totalAmount,
-  cartItems = [],
-  onSuccess,
-  onCancel,
-}: Readonly<Props>) {
-  const { data: userData } = useGetUser()
   const { data: memberships, isLoading: isMembershipsLoading } = useGetUserMemberships()
   const priceMaskitoRef = useMaskito({ options: rupiahMaskOptions })
-  const isEdit = Boolean(initialTransaction)
 
   const addMutation = useAddTransaction({
     mutationConfig: {
-      onSuccess,
-    },
-  })
-
-  const editMutation = useEditTransaction({
-    mutationConfig: {
-      onSuccess,
+      onSuccess: () => {
+        toast.success('Transaction created successfully!')
+        clearCart()
+        router.push('/transactions')
+      },
     },
   })
 
   const form = useForm<SchemaAddTransaction>({
     resolver: zodResolver(schemaAddTransaction),
-    defaultValues: {
-      membership_id: initialTransaction?.membership_id ?? '',
-      qris_tx_id: initialTransaction?.qris_tx_id ?? '',
-      total_amount: totalAmount
-        ? transformNumberToRupiahMask(totalAmount)
-        : initialTransaction?.total_amount
-          ? transformNumberToRupiahMask(initialTransaction.total_amount)
-          : '',
-      onchain_proof_hash: initialTransaction?.onchain_proof_hash ?? '',
-    },
     mode: 'onSubmit',
   })
 
@@ -97,17 +70,10 @@ function TransactionForm({
   }, [memberships, form])
 
   const onSubmit = (values: SchemaAddTransaction) => {
-    if (isEdit && initialTransaction) {
-      editMutation.mutate({ transactionId: initialTransaction.id, values })
-    } else if (!userData?.user?.id) {
-      toast.error('User not found')
-    } else {
-      // Pass cartItems to mutation
-      addMutation.mutate({ ...values, cartItems })
-    }
+    addMutation.mutate({ ...values, cartItems: cartItemsForSubmit })
   }
 
-  const isLoading = addMutation.isPending || editMutation.isPending
+  const isLoading = addMutation.isPending
 
   if (isMembershipsLoading) {
     return <div>Loading memberships...</div>
@@ -134,7 +100,7 @@ function TransactionForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="membership-id">Customer Membership</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEdit}>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger id="membership-id">
                       <SelectValue placeholder="Select a membership" />
@@ -185,7 +151,7 @@ function TransactionForm({
                 <Input
                   id="total-amount"
                   placeholder="Rp10.000"
-                  readOnly={Boolean(totalAmount)}
+                  readOnly={Boolean(total)}
                   {...field}
                   {...withMaskitoRegister(form.register('total_amount'), priceMaskitoRef)}
                 />
@@ -216,7 +182,7 @@ function TransactionForm({
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? (isEdit ? 'Saving...' : 'Creating...') : isEdit ? 'Save' : 'Create'}
+            {isLoading ? 'Creating...' : 'Create'}
           </Button>
           {onCancel ? (
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
