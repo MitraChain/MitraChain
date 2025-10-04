@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 export const schemaRegister = z.object({
-  email: z.string().email({ message: 'Alamat email tidak valid.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
 })
 
 export type SchemaRegister = z.infer<typeof schemaRegister>

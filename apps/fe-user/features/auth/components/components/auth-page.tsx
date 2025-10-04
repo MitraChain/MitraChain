@@ -1,7 +1,7 @@
 'use client'
 
+import { schemaRegister, useRegister } from '@/features/auth/api/auth'
 import { getUserQueryKey } from '@/features/auth/api/get-user'
-import { schemaRegister, useRegister } from '@/features/auth/api/register'
 
 import { createClient } from '@/lib/supabase/client'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,13 +11,13 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { RegisterForm } from './register-form'
-import { RegisterSuccess } from './register-success'
-import { RegisterWaiting } from './register-waiting'
+import { AuthForm } from './auth-form'
+import { AuthSuccess } from './auth-success'
+import { AuthWaiting } from './auth-waiting'
 
 type RegisterFormValues = z.infer<typeof schemaRegister>
 
-export default function RegisterPage() {
+export default function AuthPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const supabase = createClient()
@@ -96,23 +96,19 @@ export default function RegisterPage() {
     )
   }
 
-  // Success state
   if (isVerified) {
-    return <RegisterSuccess />
+    return <AuthSuccess />
   }
 
-  // Waiting state
   if (registerMutation.isSuccess) {
-    return <RegisterWaiting email={emailValue} onResend={handleResend} />
+    return <AuthWaiting email={emailValue} onResend={handleResend} />
   }
 
-  // Form state
   return (
-    <RegisterForm
-      email={emailValue}
+    <AuthForm
+      register={register}
       emailError={errors.email?.message}
       isSubmitting={isSubmitting}
-      onEmailChange={(email) => register('email').onChange({ target: { value: email } })}
       onSubmit={handleSubmit(onSubmit)}
     />
   )

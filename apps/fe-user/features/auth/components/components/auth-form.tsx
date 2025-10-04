@@ -9,28 +9,25 @@ import {
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import { Loader2 } from 'lucide-react'
+import { UseFormRegister } from 'react-hook-form'
+import { SchemaRegister } from '../../api/auth'
 
-interface RegisterFormProps {
-  email: string
+interface AuthFormProps {
+  register: UseFormRegister<SchemaRegister>
   emailError?: string
   isSubmitting: boolean
-  onEmailChange: (email: string) => void
   onSubmit: (e: React.FormEvent) => void
 }
 
-export function RegisterForm({
-  email,
-  emailError,
-  isSubmitting,
-  onEmailChange,
-  onSubmit,
-}: RegisterFormProps) {
+export function AuthForm({ register, emailError, isSubmitting, onSubmit }: AuthFormProps) {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Daftar MitraChain</CardTitle>
-          <CardDescription>Buat akun untuk mendapatkan kartu member digital Anda</CardDescription>
+          <CardTitle>Sign in or Sign up to MitraChain</CardTitle>
+          <CardDescription>
+            Create your account or log in to access your digital membership card
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
@@ -39,10 +36,9 @@ export function RegisterForm({
               <Input
                 id="email"
                 type="email"
-                placeholder="nama@email.com"
+                placeholder="name@email.com"
                 autoComplete="email"
-                value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
+                {...register('email')}
                 disabled={isSubmitting}
               />
               {emailError && <p className="text-sm text-red-500">{emailError}</p>}
@@ -52,10 +48,10 @@ export function RegisterForm({
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Memproses...
+                  Processing...
                 </>
               ) : (
-                'Daftar'
+                'Continue'
               )}
             </Button>
           </form>
