@@ -106,30 +106,31 @@ function SelectItem() {
         </div>
       )}
 
-      <Separator className="my-12" />
+      <Separator className="mt-12" />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground">Total Amount:</p>
-          <p className="text-lg font-semibold">Rp{total.toLocaleString()}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link href="/transactions">
-            <Button variant="ghost">Cancel</Button>
-          </Link>
-
-          <Button
-            onClick={() => {
-              if (Object.keys(cart).length === 0) {
-                toast.error('Please select at least one product.')
-                return
-              }
-              setShowForm(true)
-            }}
-          >
-            Next
-          </Button>
+      <div className="sticky bottom-6 rounded-xl border bg-transparent p-4 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <div>
+            <p className="text-muted-foreground text-sm">Total Amount:</p>
+            <p className="text-lg font-semibold">{transformNumberToRupiahMask(total)}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/transactions">
+              <Button variant="ghost">Cancel</Button>
+            </Link>
+            <Button
+              onClick={() => {
+                if (Object.keys(cart).length === 0) {
+                  toast.error('Please select at least one product.')
+                  return
+                }
+                setShowForm(true)
+              }}
+              disabled={Object.keys(cart).length === 0}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </div>
