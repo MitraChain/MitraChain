@@ -1,3 +1,4 @@
+import SidebarLayout from '@/components/side-bar-layout'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PropsWithChildren } from 'react'
@@ -13,5 +14,5 @@ export default async function ProtectedLayout({ children }: PropsWithChildren) {
     return redirect('/auth')
   }
 
-  return <div className="h-0 min-h-dvh">{children}</div>
+  return <SidebarLayout>{children}</SidebarLayout>
 }
