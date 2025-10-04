@@ -11,13 +11,19 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useCartItems, useCartStore } from '../store/cart-store'
 import { TransactionItemSkeleton } from './transaction-item-skeleton'
+
+function ProductQuantity({ productId }: { productId: string }) {
+  const quantity = useCartStore((state) => state.items.get(productId)?.quantity ?? 0)
+  return <span className="w-6 text-center">{quantity}</span>
+}
 
 function SelectItem() {
   const router = useRouter()
-  const { data: userData, isPending: isPendingUser } = useGetUser()
-  const [cart, setCart] = useState<Record<string, number>>({})
   const [showForm, setShowForm] = useState(false)
+
+  const { data: userData, isPending: isPendingUser } = useGetUser()
 
   const {
     data: productData,
@@ -26,34 +32,20 @@ function SelectItem() {
   } = useGetProducts({
     businessId: userData?.business?.id ?? '',
   })
-
   const products = productData?.data ?? []
 
-  const handleAdd = (id: string) => {
-    setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
-  }
+  const { addToCart, removeFromCart, clearCart } = useCartStore()
+  const items = useCartItems()
+  const total = useCartStore((state) =>
+    Array.from(state.items.values()).reduce((sum, item) => sum + item.price * item.quantity, 0),
+  )
+  const isCartEmpty = useCartStore((state) => state.items.size === 0)
 
-  const handleRemove = (id: string) => {
-    setCart((prev) => {
-      const newQty = (prev[id] || 0) - 1
-      if (newQty <= 0) {
-        const { [id]: _, ...rest } = prev
-        return rest
-      }
-      return { ...prev, [id]: newQty }
-    })
-  }
-
-  const total = products.reduce((sum, p) => sum + (cart?.[p.id] ?? 0) * p.price, 0)
-
-  const cartItems = Object.entries(cart).map(([productId, quantity]) => {
-    const product = products.find((p) => p.id === productId)
-    return {
-      product_id: productId,
-      quantity,
-      price_at_purchase: product?.price ?? 0,
-    }
-  })
+  const cartItemsForSubmit = Array.from(items.values()).map((item) => ({
+    product_id: item.id,
+    quantity: item.quantity,
+    price_at_purchase: item.price,
+  }))
 
   const isLoading = isPendingProducts || isPendingUser
 
@@ -63,9 +55,10 @@ function SelectItem() {
         <h1 className="mb-4 text-xl font-semibold">Complete Transaction</h1>
         <TransactionForm
           totalAmount={total}
-          cartItems={cartItems}
+          cartItems={cartItemsForSubmit}
           onSuccess={(tx) => {
             toast.success('Transaction created successfully!')
+            clearCart()
             router.push('/transactions')
           }}
           onCancel={() => setShowForm(false)}
@@ -92,24 +85,19 @@ function SelectItem() {
           <div className="grid gap-4">
             {products.map((product) => (
               <Card key={product.id}>
-                <CardContent className="flex items-center justify-between">
+                <CardContent className="flex items-center justify-between py-0">
                   <div>
-                    <p>{product.name}</p>
+                    <p className="font-medium">{product.name}</p>
                     <p className="text-muted-foreground text-sm">
                       {transformNumberToRupiahMask(product.price)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemove(product.id)}
-                      disabled={!cart[product.id]}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => removeFromCart(product.id)}>
                       -
                     </Button>
-                    <span className="w-6 text-center">{cart[product.id] || 0}</span>
-                    <Button variant="outline" size="sm" onClick={() => handleAdd(product.id)}>
+                    <ProductQuantity productId={product.id} />
+                    <Button variant="outline" size="sm" onClick={() => addToCart(product)}>
                       +
                     </Button>
                   </div>
@@ -132,13 +120,13 @@ function SelectItem() {
                 </Link>
                 <Button
                   onClick={() => {
-                    if (Object.keys(cart).length === 0) {
+                    if (isCartEmpty) {
                       toast.error('Please select at least one product.')
                       return
                     }
                     setShowForm(true)
                   }}
-                  disabled={Object.keys(cart).length === 0}
+                  disabled={isCartEmpty}
                 >
                   Next
                 </Button>
