@@ -8,18 +8,29 @@ export const getUser = async () => {
 
   const {
     data: { user },
-    error,
+    error: authError,
   } = await supabase.auth.getUser()
 
-  if (error) throw error
+  if (authError) throw authError
   if (!user) throw new Error('No user found')
 
-  // Get wallet from localStorage
-  const walletAddress = localStorage.getItem('wallet_address') || ''
+  const { data: walletData, error: walletError } = await supabase
+    .from('user_wallets')
+    .select('wallet_address, wallet_name, network')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (walletError) {
+    console.error('Error fetching wallet:', walletError)
+  }
+
+  const walletAddress = walletData?.wallet_address || ''
 
   return {
     user,
     walletAddress,
+    walletName: walletData?.wallet_name,
+    network: walletData?.network,
   }
 }
 
