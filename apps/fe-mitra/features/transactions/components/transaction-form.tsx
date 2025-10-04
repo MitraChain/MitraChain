@@ -30,7 +30,11 @@ import {
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { schemaAddTransaction, SchemaAddTransaction, useAddTransaction, AddTransactionPayload } from '../api/create-transactions'
+import {
+  schemaAddTransaction,
+  SchemaAddTransaction,
+  useAddTransaction,
+} from '../api/create-transactions'
 import { useEditTransaction } from '../api/edit-transactions'
 
 type CartItem = {
@@ -47,12 +51,12 @@ type Props = {
   onCancel?: () => void
 }
 
-function TransactionForm({ 
-  initialTransaction, 
+function TransactionForm({
+  initialTransaction,
   totalAmount,
   cartItems = [],
-  onSuccess, 
-  onCancel 
+  onSuccess,
+  onCancel,
 }: Readonly<Props>) {
   const { data: userData } = useGetUser()
   const { data: memberships, isLoading: isMembershipsLoading } = useGetUserMemberships()
@@ -64,7 +68,7 @@ function TransactionForm({
       onSuccess,
     },
   })
-  
+
   const editMutation = useEditTransaction({
     mutationConfig: {
       onSuccess,
@@ -76,11 +80,11 @@ function TransactionForm({
     defaultValues: {
       membership_id: initialTransaction?.membership_id ?? '',
       qris_tx_id: initialTransaction?.qris_tx_id ?? '',
-      total_amount: totalAmount 
+      total_amount: totalAmount
         ? transformNumberToRupiahMask(totalAmount)
-        : initialTransaction?.total_amount 
-        ? transformNumberToRupiahMask(initialTransaction.total_amount) 
-        : '',
+        : initialTransaction?.total_amount
+          ? transformNumberToRupiahMask(initialTransaction.total_amount)
+          : '',
       onchain_proof_hash: initialTransaction?.onchain_proof_hash ?? '',
     },
     mode: 'onSubmit',
@@ -111,9 +115,9 @@ function TransactionForm({
 
   if (!memberships || memberships.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <p className="text-muted-foreground">No memberships found for your businesses.</p>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 text-sm">
           Please ensure you have businesses with active memberships.
         </p>
       </div>
@@ -130,11 +134,7 @@ function TransactionForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="membership-id">Customer Membership</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                  disabled={isEdit}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEdit}>
                   <FormControl>
                     <SelectTrigger id="membership-id">
                       <SelectValue placeholder="Select a membership" />
@@ -143,7 +143,9 @@ function TransactionForm({
                   <SelectContent>
                     {memberships.map((membership) => (
                       <SelectItem key={membership.id} value={membership.id}>
-                        {membership.businesses?.name || 'Unknown Business'} - {membership.wallet_address?.slice(0, 6)}...{membership.wallet_address?.slice(-4)}
+                        {membership.businesses[0]?.name || 'Unknown Business'} -{' '}
+                        {membership.wallet_address?.slice(0, 6)}...
+                        {membership.wallet_address?.slice(-4)}
                       </SelectItem>
                     ))}
                   </SelectContent>

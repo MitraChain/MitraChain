@@ -1,7 +1,6 @@
 'use client'
 
 import { useGetUser } from '@/features/auth/api/get-user'
-import { useGetUserMemberships } from '@/features/auth/api/get-user-memberships'
 import { useGetProducts } from '@/features/products/api/get-products'
 import TransactionForm from '@/features/transactions/components/transaction-form'
 import { Separator } from '@radix-ui/react-select'
@@ -9,25 +8,18 @@ import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 function SelectItem() {
   const router = useRouter()
   const { data: userData } = useGetUser()
-  const { data: memberships } = useGetUserMemberships()
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null)
-  const [cart, setCart] = useState<Record<string, number>>({}) 
+  const [cart, setCart] = useState<Record<string, number>>({})
   const [showForm, setShowForm] = useState(false)
 
-  const businessId = memberships?.[0]?.business_id ?? null
   const { data: productData, isLoading } = useGetProducts({
-    businessId: selectedBusiness || businessId || '',
+    businessId: userData?.business?.id ?? '',
   })
-
-  useEffect(() => {
-    if (businessId && !selectedBusiness) setSelectedBusiness(businessId)
-  }, [businessId, selectedBusiness])
 
   const products = productData?.data ?? []
 
@@ -46,10 +38,10 @@ function SelectItem() {
     })
   }
 
-  const total = products.reduce((sum, p) => sum + ((cart?.[p.id] ?? 0) * p.price), 0)
+  const total = products.reduce((sum, p) => sum + (cart?.[p.id] ?? 0) * p.price, 0)
 
   const cartItems = Object.entries(cart).map(([productId, quantity]) => {
-    const product = products.find(p => p.id === productId)
+    const product = products.find((p) => p.id === productId)
     return {
       product_id: productId,
       quantity,
