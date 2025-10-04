@@ -4,8 +4,9 @@ import { useGetUser } from '@/features/auth/api/get-user'
 import { useGetProducts } from '@/features/products/api/get-products'
 import TransactionForm from '@/features/transactions/components/transaction-form'
 import { Separator } from '@radix-ui/react-select'
+import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Card, CardContent } from '@workspace/ui/components/card'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -78,11 +79,13 @@ function SelectItem() {
         <div className="grid gap-4">
           {products.map((product) => (
             <Card key={product.id}>
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle>{product.name}</CardTitle>
-                <p className="text-muted-foreground text-sm">Rp{product.price.toLocaleString()}</p>
-              </CardHeader>
               <CardContent className="flex items-center justify-between">
+                <div>
+                  <p>{product.name}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {transformNumberToRupiahMask(product.price)}
+                  </p>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -97,10 +100,6 @@ function SelectItem() {
                     +
                   </Button>
                 </div>
-                <p className="font-medium">
-                  Subtotal: Rp
-                  {(product.price * (cart[product.id] || 0)).toLocaleString()}
-                </p>
               </CardContent>
             </Card>
           ))}
