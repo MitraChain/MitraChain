@@ -1,6 +1,6 @@
 'use client'
 
-import { useGetUserMemberships } from '@/features/auth/api/get-user-memberships'
+import { useGetUserMemberships } from '@/features/reward-programs/api/get-user-memberships'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'

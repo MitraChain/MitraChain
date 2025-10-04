@@ -1,7 +1,7 @@
+import { useGetUser } from '@/features/auth/api/get-user'
 import { createClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { QueryConfig } from '@workspace/query-config'
-import { useGetUser } from './get-user'
 
 export const getUserMemberships = async ({ businessId }: { businessId: string }) => {
   const supabase = createClient()
