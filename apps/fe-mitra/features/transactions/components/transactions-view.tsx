@@ -3,14 +3,6 @@
 import { useGetUser } from '@/features/auth/api/get-user'
 import { useDebounce } from '@uidotdev/usehooks'
 import { getErrorMessage } from '@workspace/lib/index'
-import { Button } from '@workspace/ui/components/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@workspace/ui/components/dialog'
 import { Input } from '@workspace/ui/components/input'
 import {
   Pagination,
@@ -23,13 +15,11 @@ import { useState } from 'react'
 import { TRANSACTIONS_PAGE_SIZE, useGetTransactions } from '../api/get-transactions'
 import TransactionItem from './transaction-item'
 import { TransactionItemSkeleton } from './transaction-item-skeleton'
-import Link from 'next/link'
 
 export function TransactionsView() {
   const { data: userData } = useGetUser()
-  const ownerId = userData?.user?.id! // id user yang login (owner)
+  const ownerId = userData?.user?.id!
   const [page, setPage] = useState(1)
-  const [openCreate, setOpenCreate] = useState(false)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
   const { data, error, isLoading, isFetching } = useGetTransactions({
@@ -55,13 +45,6 @@ export function TransactionsView() {
     <div className="grid gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-pretty text-xl font-semibold">Transactions</h1>
-        <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-          <DialogTrigger asChild>
-            <Link href="/transactions/add">
-              <Button>Add Transaction</Button>
-            </Link>
-          </DialogTrigger>
-        </Dialog>
       </div>
 
       <div className="flex items-center gap-2">

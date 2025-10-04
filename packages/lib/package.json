@@ -12,6 +12,8 @@
     "@maskito/kit": "^3.11.1",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "react-hook-form": "^7.63.0"
   },
   "peerDependencies": {

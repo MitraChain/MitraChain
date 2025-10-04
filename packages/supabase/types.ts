@@ -51,7 +51,7 @@ export type Database = {
         }
         Insert: {
           business_id: string
-          created_at: string
+          created_at?: string
           id?: string
           nft_id: string
           points: number
@@ -201,7 +201,7 @@ export type Database = {
           total_amount: number
         }
         Insert: {
-          created_at: string
+          created_at?: string
           id?: string
           membership_id: string
           onchain_proof_hash: string
@@ -225,6 +225,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_wallets: {
+        Row: {
+          created_at: string | null
+          id: string
+          network: string | null
+          updated_at: string | null
+          user_id: string
+          wallet_address: string
+          wallet_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          network?: string | null
+          updated_at?: string | null
+          user_id: string
+          wallet_address: string
+          wallet_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          network?: string | null
+          updated_at?: string | null
+          user_id?: string
+          wallet_address?: string
+          wallet_name?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -32,7 +32,6 @@ export const addTransaction = async (values: AddTransactionPayload): Promise<Tra
 
   const transactionData: TransactionInsert = {
     membership_id: values.membership_id,
-    created_at: new Date().toISOString(),
     onchain_proof_hash: values.onchain_proof_hash,
     qris_tx_id: values.qris_tx_id,
     total_amount: values.total_amount,

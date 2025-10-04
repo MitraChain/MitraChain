@@ -11,14 +11,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@workspace/ui/components/sidebar'
-import { Gift, LayoutDashboard, LogOut, Package, Receipt, User2 } from 'lucide-react'
+import { Gift, History, LayoutDashboard, LogOut, Package, Receipt, User2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAVIGATION = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
-  { name: 'Transactions', href: '/transactions', icon: Receipt },
+  { name: 'Transaction History', href: '/transaction-history', icon: History },
+  { name: 'Create Transaction', href: '/create-transaction', icon: Receipt },
   { name: 'Loyalty Programs', href: '/reward-programs', icon: Gift },
 ]
 
