@@ -1,16 +1,10 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: '13.0.5'
   }
   public: {
     Tables: {
@@ -71,11 +65,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "memberships_business_id_fkey"
-            columns: ["business_id"]
+            foreignKeyName: 'memberships_business_id_fkey'
+            columns: ['business_id']
             isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
+            referencedRelation: 'businesses'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -103,11 +97,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "products_business_id_fkey"
-            columns: ["business_id"]
+            foreignKeyName: 'products_business_id_fkey'
+            columns: ['business_id']
             isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
+            referencedRelation: 'businesses'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -120,7 +114,7 @@ export type Database = {
           name: string
           reward_description: string
           threshold: number
-          type: Database["public"]["Enums"]["reward_program_type"]
+          type: Database['public']['Enums']['reward_program_type']
         }
         Insert: {
           business_id: string
@@ -130,7 +124,7 @@ export type Database = {
           name: string
           reward_description: string
           threshold?: number
-          type?: Database["public"]["Enums"]["reward_program_type"]
+          type?: Database['public']['Enums']['reward_program_type']
         }
         Update: {
           business_id?: string
@@ -140,15 +134,15 @@ export type Database = {
           name?: string
           reward_description?: string
           threshold?: number
-          type?: Database["public"]["Enums"]["reward_program_type"]
+          type?: Database['public']['Enums']['reward_program_type']
         }
         Relationships: [
           {
-            foreignKeyName: "reward_programs_business_id_fkey"
-            columns: ["business_id"]
+            foreignKeyName: 'reward_programs_business_id_fkey'
+            columns: ['business_id']
             isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
+            referencedRelation: 'businesses'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -176,18 +170,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "transaction_items_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: 'transaction_items_product_id_fkey'
+            columns: ['product_id']
             isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
+            referencedRelation: 'products'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "transaction_items_transaction_id_fkey"
-            columns: ["transaction_id"]
+            foreignKeyName: 'transaction_items_transaction_id_fkey'
+            columns: ['transaction_id']
             isOneToOne: false
-            referencedRelation: "transactions"
-            referencedColumns: ["id"]
+            referencedRelation: 'transactions'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -218,11 +212,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "transactions_membership_id_fkey"
-            columns: ["membership_id"]
+            foreignKeyName: 'transactions_membership_id_fkey'
+            columns: ['membership_id']
             isOneToOne: false
-            referencedRelation: "memberships"
-            referencedColumns: ["id"]
+            referencedRelation: 'memberships'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -264,7 +258,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      reward_program_type: "stamp" | "point" | "milestone"
+      reward_program_type: 'stamp' | 'point' | 'milestone'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -272,33 +266,31 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -307,23 +299,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -332,23 +324,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -357,42 +349,42 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      reward_program_type: ["stamp", "point", "milestone"],
+      reward_program_type: ['stamp', 'point', 'milestone'],
     },
   },
 } as const
