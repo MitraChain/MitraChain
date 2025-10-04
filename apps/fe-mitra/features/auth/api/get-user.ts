@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { QueryConfig } from '@workspace/query-config'
 import { Business } from '@workspace/supabase/index'
 
-export const getUser = async (): Promise<{ user: User  | null; business: Business }> => {
+export const getUser = async (): Promise<{ user: User | null; business: Business }> => {
   const supabase = createClient()
   const {
     data: { user },
