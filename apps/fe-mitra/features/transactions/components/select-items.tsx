@@ -1,12 +1,17 @@
 'use client'
 
 import { useGetUser } from '@/features/auth/api/get-user'
-import { PRODUCTS_PAGE_SIZE, useGetProducts } from '@/features/products/api/get-products'
+import { PRODUCTS_PAGE_SIZE } from '@/features/products/api/get-products'
+import { useGetInfiniteProducts } from '@/features/products/api/get-products-infinite'
 import { Separator } from '@radix-ui/react-select'
+import { useDebounce } from '@uidotdev/usehooks'
 import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent } from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
 import { useCartStore } from '../store/cart-store'
 import { useStepStore } from '../store/step-store'
@@ -19,16 +24,26 @@ function ProductQuantity({ productId }: { productId: string }) {
 
 function SelectItems() {
   const { setStep } = useStepStore()
-  const { data: userData, isPending: isPendingUser } = useGetUser()
+  const { isPending: isPendingUser } = useGetUser()
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
+
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+  })
 
   const {
     data: productData,
-    isPending: isPendingProducts,
+    isLoading: isPendingProducts,
     error,
-  } = useGetProducts({
-    businessId: userData?.business?.id ?? '',
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetInfiniteProducts({
+    search: debouncedSearch,
   })
-  const products = productData?.data ?? []
+  const products = productData?.pages.flatMap((page) => page.data) ?? []
 
   const { addToCart, removeFromCart } = useCartStore()
 
@@ -39,9 +54,24 @@ function SelectItems() {
 
   const isLoading = isPendingProducts || isPendingUser
 
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Create New Transaction</h1>
+
+      <Input
+        placeholder="Search products..."
+        value={search}
+        className="mb-4"
+        onChange={(e) => {
+          setSearch(e.target.value)
+        }}
+      />
 
       {isLoading && (
         <div className="flex flex-col gap-3">
@@ -77,6 +107,14 @@ function SelectItems() {
               </Card>
             ))}
           </div>
+
+          <div ref={ref} className="h-1" />
+
+          {isFetchingNextPage && (
+            <div className="mt-6 flex justify-center">
+              <p className="text-muted-foreground text-sm">Loading more products...</p>
+            </div>
+          )}
 
           <Separator className="mt-12" />
 

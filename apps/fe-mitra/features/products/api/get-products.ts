@@ -67,6 +67,7 @@ export const useGetProducts = ({
   return useQuery({
     queryKey: ['products', businessId, { page, search }],
     queryFn: () => getProducts({ page, search, businessId }),
+    enabled: !!businessId,
     ...restConfig,
   })
 }

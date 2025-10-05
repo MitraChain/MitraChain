@@ -1,3 +1,4 @@
+import { useGetUser } from '@/features/auth/api/get-user'
 import { useLogout } from '@/features/auth/api/logout'
 import {
   Sidebar,
@@ -25,6 +26,7 @@ const NAVIGATION = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const { data } = useGetUser()
   const { mutate, isPending } = useLogout()
 
   return (
@@ -90,11 +92,12 @@ export function AdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="hover:bg-sidebar">
               <div className="bg-sidebar-accent text-sidebar-accent-foreground flex aspect-square size-8 items-center justify-center rounded-full">
-                <span className="text-xs font-medium">AD</span>
+                <span className="text-xs font-medium">
+                  {data?.user?.email?.slice(0, 2).toUpperCase()}
+                </span>
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Admin User</span>
-                <span className="text-muted-foreground truncate text-xs">admin@mitrachain.com</span>
+                <span className="text-muted-foreground truncate text-xs">{data?.user?.email}</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
