@@ -4,11 +4,13 @@ import { useGetUser } from '@/features/auth/api/get-user'
 import { PRODUCTS_PAGE_SIZE } from '@/features/products/api/get-products'
 import { useGetInfiniteProducts } from '@/features/products/api/get-products-infinite'
 import { Separator } from '@radix-ui/react-select'
+import { useDebounce } from '@uidotdev/usehooks'
 import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent } from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'sonner'
 import { useCartStore } from '../store/cart-store'
@@ -23,6 +25,8 @@ function ProductQuantity({ productId }: { productId: string }) {
 function SelectItems() {
   const { setStep } = useStepStore()
   const { isPending: isPendingUser } = useGetUser()
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -36,7 +40,9 @@ function SelectItems() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetInfiniteProducts()
+  } = useGetInfiniteProducts({
+    search: debouncedSearch,
+  })
   const products = productData?.pages.flatMap((page) => page.data) ?? []
 
   const { addToCart, removeFromCart } = useCartStore()
@@ -57,6 +63,15 @@ function SelectItems() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Create New Transaction</h1>
+
+      <Input
+        placeholder="Search products..."
+        value={search}
+        className="mb-4"
+        onChange={(e) => {
+          setSearch(e.target.value)
+        }}
+      />
 
       {isLoading && (
         <div className="flex flex-col gap-3">
