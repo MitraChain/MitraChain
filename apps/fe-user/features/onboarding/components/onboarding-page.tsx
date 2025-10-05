@@ -37,9 +37,6 @@ export default function OnboardingPage() {
         throw new Error(data.error || 'Failed to create wallet')
       }
 
-      // Save wallet address
-      localStorage.setItem('wallet_address', data.data.wallet.walletAddress)
-
       toast.success('Wallet created successfully!')
 
       setTimeout(() => {
