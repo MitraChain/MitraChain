@@ -26,7 +26,7 @@ export function WalletInfoCard({ walletAddress }: WalletInfoCardProps) {
     <Card>
       <CardHeader>
         <CardTitle>Wallet Cardano</CardTitle>
-        <CardDescription>Alamat wallet Anda di blockchain Cardano</CardDescription>
+        <CardDescription>Your wallet address in cardano blockchain</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -43,7 +43,7 @@ export function WalletInfoCard({ walletAddress }: WalletInfoCardProps) {
 
         <div className="border-t pt-4">
           <p className="text-muted-foreground text-sm">
-            Wallet ini digunakan untuk menyimpan NFT loyalty card Anda dari berbagai UMKM.
+            This wallet is used to store NFT loyalty cards from various businesses.
           </p>
         </div>
       </CardContent>
