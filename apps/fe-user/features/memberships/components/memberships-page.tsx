@@ -1,8 +1,9 @@
+import Container from '@/components/container'
 import { Card, CardContent } from '@workspace/ui/components/card'
 
 export default function MembershipsPage() {
   return (
-    <div className="p-4 md:p-6">
+    <Container>
       <header className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">My Memberships</h1>
         <p className="text-muted-foreground mt-1">All your loyalty cards in one place.</p>
@@ -17,6 +18,6 @@ export default function MembershipsPage() {
           </Card>
         ))}
       </div>
-    </div>
+    </Container>
   )
 }

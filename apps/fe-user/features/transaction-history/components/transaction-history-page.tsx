@@ -1,8 +1,9 @@
+import Container from '@/components/container'
 import { Card, CardContent } from '@workspace/ui/components/card'
 
 export default function TransactionHistoryPage() {
   return (
-    <div className="p-4 md:p-6">
+    <Container>
       <header className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Transaction History</h1>
         <p className="text-muted-foreground mt-1">A record of your recent activity.</p>
@@ -20,6 +21,6 @@ export default function TransactionHistoryPage() {
           </Card>
         ))}
       </div>
-    </div>
+    </Container>
   )
 }

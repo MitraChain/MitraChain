@@ -9,9 +9,9 @@ export const TRANSACTIONS_PAGE_SIZE = 10
 export const getTransaction = async ({
   page = 1,
   search = '',
-  businessId,
+  userId,
 }: {
-  businessId: string
+  userId: string
   page?: number
   search?: string
 }): Promise<PaginatedResponse<Transaction>> => {
@@ -34,7 +34,7 @@ export const getTransaction = async ({
     `,
       { count: 'exact' },
     )
-    .eq('memberships.business_id', businessId)
+    .eq('memberships.user_id', userId)
     .range(from, to)
     .order('created_at', { ascending: false })
 
@@ -97,12 +97,12 @@ export const useGetTransactions = ({
 }) => {
   const { ...restConfig } = queryConfig || {}
   const { data } = useGetUser()
-  const businessId = data?.business.id
+  const userId = data?.user.id
 
   return useQuery({
-    queryKey: ['transactions', businessId, { page, search }],
-    queryFn: () => getTransaction({ page, search, businessId: businessId! }),
-    enabled: !!data?.business.id,
+    queryKey: ['transactions', userId, { page, search }],
+    queryFn: () => getTransaction({ page, search, userId: userId! }),
+    enabled: !!userId,
     ...restConfig,
   })
 }
