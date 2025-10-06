@@ -35,7 +35,7 @@ export default function TransactionHistoryPage() {
         <p className="text-muted-foreground mt-1">A record of your recent activity.</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         {isLoading &&
           Array.from({ length: TRANSACTIONS_PAGE_SIZE }).map((_, i) => (
             <TransactionItemSkeleton key={i} />
