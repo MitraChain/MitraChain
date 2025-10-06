@@ -28,8 +28,7 @@ export const getTransaction = async ({
         id,
         user_id,
         business_id,
-        points,
-        stamps
+        points
       )
     `,
       { count: 'exact' },
@@ -49,36 +48,14 @@ export const getTransaction = async ({
     throw new Error(error.message || 'Failed to fetch transactions.')
   }
 
-  let transactionsWithUsers = data || []
-  if (data && data.length > 0) {
-    const userIds = [...new Set(data.map((t) => t.memberships?.user_id).filter(Boolean))]
-
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .in('id', userIds)
-
-      const emailMap = new Map(profiles?.map((p) => [p.id, p.email]) || [])
-
-      transactionsWithUsers = data.map((t) => ({
-        ...t,
-        user: {
-          id: t.memberships?.user_id,
-          email: emailMap.get(t.memberships?.user_id) || 'N/A',
-        },
-      }))
-    }
-  }
-
   const totalItems = count ?? 0
   const totalPages = Math.ceil(totalItems / TRANSACTIONS_PAGE_SIZE)
 
   return {
-    data: transactionsWithUsers,
+    data,
     meta: {
       totalItems,
-      itemCount: transactionsWithUsers.length,
+      itemCount: data.length,
       itemsPerPage: TRANSACTIONS_PAGE_SIZE,
       totalPages,
       currentPage: page,
