@@ -7,7 +7,7 @@ import { UserTransaction } from '../api/get-user-transactions-infinite'
 const TransactionItem = ({ transaction }: { transaction: UserTransaction }) => {
   return (
     <Link href={`/transaction-history/${transaction.id}`} prefetch={false}>
-      <Card className="cursor-pointer">
+      <Card className="hover:bg-muted/50 cursor-pointer">
         <CardContent className="flex items-center justify-between py-0">
           <div className="flex flex-col gap-1">
             <p className="font-semibold">
