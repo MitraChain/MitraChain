@@ -44,7 +44,7 @@ export default function AuthPage() {
       } = await supabase.auth.getSession()
 
       if (session) {
-        router.push('/dashboard')
+        router.push('/memberships')
       } else {
         setIsCheckingAuth(false)
       }

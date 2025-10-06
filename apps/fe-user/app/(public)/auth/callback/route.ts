@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { toast } from 'sonner'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -16,7 +15,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Auth callback error:', error)
-      return NextResponse.redirect(`${requestUrl.origin}/register?error=auth_failed`)
+      return NextResponse.redirect(`${requestUrl.origin}/auth?error=auth_failed`)
     }
 
     if (user) {
@@ -31,9 +30,7 @@ export async function GET(request: Request) {
       }
 
       if (walletData && walletData.wallet_address) {
-        // User already has wallet → go to dashboard
-        toast.success('Existing user with wallet, redirecting to dashboard')
-        return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
+        return NextResponse.redirect(`${requestUrl.origin}/memberships`)
       }
 
       // New user without wallet → go to onboarding
@@ -42,5 +39,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/register?error=no_code`)
+  return NextResponse.redirect(`${requestUrl.origin}/auth?error=no_code`)
 }

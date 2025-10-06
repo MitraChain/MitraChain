@@ -40,7 +40,7 @@ export default function OnboardingPage() {
       toast.success('Wallet created successfully!')
 
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push('/memberships')
       }, 1000)
     } catch (err: any) {
       console.error('Create wallet error:', err)

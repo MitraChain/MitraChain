@@ -10,7 +10,7 @@ import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import { Loader2 } from 'lucide-react'
 import { UseFormRegister } from 'react-hook-form'
-import { SchemaRegister } from '../../api/auth'
+import { SchemaRegister } from '../api/auth'
 
 interface AuthFormProps {
   register: UseFormRegister<SchemaRegister>

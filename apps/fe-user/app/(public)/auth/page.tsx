@@ -1,3 +1,3 @@
-import RegisterPage from '@/features/auth/components/components/auth-page'
+import RegisterPage from '@/features/auth/components/auth-page'
 
 export default RegisterPage
