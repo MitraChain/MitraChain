@@ -23,9 +23,16 @@ export async function mintRewardNFT(params: MintNFTParams): Promise<MintNFTRespo
   const { walletAddress, displayName, points, transactionId, totalAmount, metadata } = params
 
   try {
+    const shortTx = transactionId.slice(0, 6)
+    const timestamp = Date.now().toString(36)
+    const uniqueSuffix = `${shortTx}_${timestamp}`
+
+    const assetName = `MitraChain_${points}pts_${uniqueSuffix}`
+    const tokenName = `MitraChain${points}pts_${uniqueSuffix}`
+
     const payload = {
-      assetName: `MitraChain_${points}pts_${transactionId.slice(0, 8)}`,
-      tokenname: `MitraChain${points}pts`, // Tambahkan ini
+      assetName,
+      tokenname: tokenName,
       displayname: displayName,
       previewImageNft: {
         mimetype: 'image/png',
