@@ -1,3 +1,4 @@
+// apps/fe-mitra/app/api/scan-member/route.ts
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -5,7 +6,6 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient()
 
-    // Get kasir (business owner) yang login
     const {
       data: { user: kasir },
       error: authError,
@@ -16,9 +16,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Kasir ID:', kasir.id) // Debug log
-
-    // Get QR data dari request body
     const body = await request.json()
     const { qr_data } = body
 
@@ -26,7 +23,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'QR data required' }, { status: 400 })
     }
 
-    // Parse QR data
     let qrPayload
     try {
       qrPayload = JSON.parse(qr_data)
@@ -35,22 +31,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid QR format' }, { status: 400 })
     }
 
-    console.log('QR Payload:', qrPayload) // Debug log
-
-    // Validate QR type
     if (qrPayload.type !== 'mitrachain_member') {
       return NextResponse.json({ success: false, error: 'Invalid QR type' }, { status: 400 })
     }
 
-    // Get business milik kasir
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id, name')
       .eq('owner_id', kasir.id)
       .single()
 
-    if (businessError) {
-      console.error('Business error:', businessError)
+    if (businessError || !business) {
       return NextResponse.json(
         {
           success: false,
@@ -59,18 +50,6 @@ export async function POST(request: Request) {
         { status: 404 },
       )
     }
-
-    if (!business) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No business found for this user',
-        },
-        { status: 404 },
-      )
-    }
-
-    console.log('Business ID:', business.id) // Debug log
 
     // Check membership existing
     const { data: existingMembership, error: checkError } = await supabase
@@ -84,53 +63,88 @@ export async function POST(request: Request) {
       console.error('Check membership error:', checkError)
     }
 
-    if (existingMembership) {
-      console.log('Existing membership found')
-      return NextResponse.json({
-        success: true,
-        message: 'Member already exists',
-        data: {
-          membership: existingMembership,
-          is_new_member: false,
-        },
-      })
+    let membershipData = existingMembership
+
+    if (!existingMembership) {
+      // Auto register member baru
+      const { data: newMembership, error: insertError } = await supabase
+        .from('memberships')
+        .insert({
+          user_id: qrPayload.user_id,
+          business_id: business.id,
+          wallet_address: qrPayload.wallet_address,
+          nft_id: '',
+          points: 0,
+          stamps: 0,
+        })
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error('Insert membership error:', insertError)
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Failed to create membership: ${insertError.message}`,
+          },
+          { status: 500 },
+        )
+      }
+
+      membershipData = newMembership
     }
 
-    // Auto register member baru
-    console.log('Creating new membership...') // Debug log
-
-    const { data: newMembership, error: insertError } = await supabase
-      .from('memberships')
-      .insert({
-        user_id: qrPayload.user_id,
-        business_id: business.id,
-        wallet_address: qrPayload.wallet_address,
-        nft_id: '',
-        points: 0,
-        stamps: 0,
-      })
-      .select()
-      .single()
-
-    if (insertError) {
-      console.error('Insert membership error:', insertError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Failed to create membership: ${insertError.message}`,
-        },
-        { status: 500 },
+    // Fetch NFT vouchers (completed redemptions yang belum di-redeem)
+    const { data: nftVouchers, error: vouchersError } = await supabase
+      .from('reward_redemptions')
+      .select(
+        `
+    id,
+    nft_id,
+    nft_redeemed,
+    reward_program_id,
+    reward_programs (
+      id,
+      name,
+      type,
+      threshold,
+      reward_description
+    )
+  `,
       )
+      .eq('membership_id', membershipData.id)
+      .eq('status', 'completed')
+      .eq('nft_redeemed', false)
+      .order('created_at', { ascending: false })
+
+    if (vouchersError) {
+      console.error('Error fetching vouchers:', vouchersError)
     }
 
-    console.log('New membership created:', newMembership)
+    console.log(nftVouchers)
+
+    // Format vouchers data
+    const formattedVouchers =
+      nftVouchers?.map((voucher) => ({
+        id: voucher.id,
+        nft_id: voucher.nft_id,
+        nft_redeemed: voucher.nft_redeemed,
+        reward_program_id: voucher.reward_program_id,
+        reward_program_name: voucher.reward_programs?.name || 'Unknown',
+        reward_program_type: voucher.reward_programs?.type || 'point',
+        reward_threshold: voucher.reward_programs?.threshold || 0,
+        reward_description: voucher.reward_programs?.reward_description || '',
+      })) || []
 
     return NextResponse.json({
       success: true,
-      message: 'New member registered',
+      message: existingMembership ? 'Member already exists' : 'New member registered',
       data: {
-        membership: newMembership,
-        is_new_member: true,
+        membership: {
+          ...membershipData,
+          nft_vouchers: formattedVouchers,
+        },
+        is_new_member: !existingMembership,
         business_name: business.name,
       },
     })
