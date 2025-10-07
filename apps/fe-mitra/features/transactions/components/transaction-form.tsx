@@ -54,7 +54,7 @@ export default function TransactionForm() {
     clearCart()
     clearMembership()
     setStep('select-items')
-    router.push('/transactions/create')
+    router.push('/create-transaction')
   }
 
   const handleConfirm = async () => {
@@ -84,7 +84,7 @@ export default function TransactionForm() {
           total_amount: totalAmount,
           cartItems: cartItemsForSubmit,
           payment_method: paymentMethod,
-          used_vouchers: selectedVouchers, // Send selected vouchers
+          used_vouchers: selectedVouchers,
         }),
       })
 
