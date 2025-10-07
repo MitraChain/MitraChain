@@ -8,6 +8,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      blockchain_batches: {
+        Row: {
+          business_id: string
+          id: string
+          merkle_root: string | null
+          onchain_tx_hash: string | null
+          recorded_at: string | null
+          total_amount: number
+          transaction_count: number
+          transaction_ids: string[]
+        }
+        Insert: {
+          business_id: string
+          id?: string
+          merkle_root?: string | null
+          onchain_tx_hash?: string | null
+          recorded_at?: string | null
+          total_amount: number
+          transaction_count: number
+          transaction_ids: string[]
+        }
+        Update: {
+          business_id?: string
+          id?: string
+          merkle_root?: string | null
+          onchain_tx_hash?: string | null
+          recorded_at?: string | null
+          total_amount?: number
+          transaction_count?: number
+          transaction_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'blockchain_batches_business_id_fkey'
+            columns: ['business_id']
+            isOneToOne: false
+            referencedRelation: 'businesses'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
@@ -39,7 +80,6 @@ export type Database = {
           id: string
           nft_id: string
           points: number
-          stamps: number
           user_id: string
           wallet_address: string
         }
@@ -49,7 +89,6 @@ export type Database = {
           id?: string
           nft_id: string
           points: number
-          stamps: number
           user_id: string
           wallet_address: string
         }
@@ -59,7 +98,6 @@ export type Database = {
           id?: string
           nft_id?: string
           points?: number
-          stamps?: number
           user_id?: string
           wallet_address?: string
         }
@@ -146,6 +184,126 @@ export type Database = {
           },
         ]
       }
+      reward_redemptions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          membership_id: string
+          nft_id: string | null
+          nft_redeemed: boolean | null
+          nft_redeemed_at: string | null
+          points_spent: number
+          redeemed_by: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          reward_program_id: string
+          status: string | null
+          token_id: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          membership_id: string
+          nft_id?: string | null
+          nft_redeemed?: boolean | null
+          nft_redeemed_at?: string | null
+          points_spent: number
+          redeemed_by?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reward_program_id: string
+          status?: string | null
+          token_id?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          membership_id?: string
+          nft_id?: string | null
+          nft_redeemed?: boolean | null
+          nft_redeemed_at?: string | null
+          points_spent?: number
+          redeemed_by?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reward_program_id?: string
+          status?: string | null
+          token_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'reward_redemptions_membership_id_fkey'
+            columns: ['membership_id']
+            isOneToOne: false
+            referencedRelation: 'memberships'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'reward_redemptions_reward_program_id_fkey'
+            columns: ['reward_program_id']
+            isOneToOne: false
+            referencedRelation: 'reward_programs'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      transaction_batch_queue: {
+        Row: {
+          batch_id: string | null
+          business_id: string
+          created_at: string | null
+          id: string
+          is_recorded: boolean | null
+          transaction_id: string
+        }
+        Insert: {
+          batch_id?: string | null
+          business_id: string
+          created_at?: string | null
+          id?: string
+          is_recorded?: boolean | null
+          transaction_id: string
+        }
+        Update: {
+          batch_id?: string | null
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          is_recorded?: boolean | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'transaction_batch_queue_business_id_fkey'
+            columns: ['business_id']
+            isOneToOne: false
+            referencedRelation: 'businesses'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transaction_batch_queue_transaction_id_fkey'
+            columns: ['transaction_id']
+            isOneToOne: false
+            referencedRelation: 'transactions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       transaction_items: {
         Row: {
           id: number
@@ -191,6 +349,8 @@ export type Database = {
           id: string
           membership_id: string
           onchain_proof_hash: string
+          payment_status: string | null
+          payment_verified_at: string | null
           qris_tx_id: string
           total_amount: number
         }
@@ -199,6 +359,8 @@ export type Database = {
           id?: string
           membership_id: string
           onchain_proof_hash: string
+          payment_status?: string | null
+          payment_verified_at?: string | null
           qris_tx_id: string
           total_amount: number
         }
@@ -207,6 +369,8 @@ export type Database = {
           id?: string
           membership_id?: string
           onchain_proof_hash?: string
+          payment_status?: string | null
+          payment_verified_at?: string | null
           qris_tx_id?: string
           total_amount?: number
         }
@@ -255,7 +419,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_businesses_ready_for_batch: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_id: string
+          pending_count: number
+        }[]
+      }
     }
     Enums: {
       reward_program_type: 'stamp' | 'point' | 'milestone'

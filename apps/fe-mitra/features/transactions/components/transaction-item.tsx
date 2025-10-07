@@ -1,8 +1,8 @@
 'use client'
 
-import { SafeDateTime } from '@/components/safe-date-time'
 import { transformNumberToRupiahMask } from '@workspace/lib/index'
 import { Transaction } from '@workspace/supabase/index'
+import { SafeDateTime } from '@workspace/ui/components/safe-date-time'
 
 type Props = {
   transaction: Transaction

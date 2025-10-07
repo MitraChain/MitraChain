@@ -6,6 +6,7 @@
     "paths": {
       "@/*": ["./*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
+      "@workspace/lib/*": ["../../packages/lib/*"],
       "@workspace/supabase": ["../../packages/supabase/"],
       "@workspace/query-config": ["../../packages/query-config/index.ts"]
     },

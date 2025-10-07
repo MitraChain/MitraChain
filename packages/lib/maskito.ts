@@ -30,6 +30,7 @@ export function parseRupiahMaskToNumber(str: string) {
   return maskitoParseNumber(str, ',')
 }
 
-export function transformNumberToRupiahMask(num: number) {
+export function transformNumberToRupiahMask(num: number | undefined) {
+  if (num === undefined) return ''
   return maskitoTransform(String(num), rupiahMaskOptions)
 }

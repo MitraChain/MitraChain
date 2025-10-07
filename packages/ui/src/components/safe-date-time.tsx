@@ -1,10 +1,10 @@
 'use client'
 
-import { formatWIBTimeDate } from '@workspace/lib/index'
+import { formatWIBTimeDate } from '@workspace/lib'
 import { useEffect, useState } from 'react'
 
 interface SafeDateTimeProps {
-  date: string
+  date: string | undefined
 }
 
 export function SafeDateTime({ date }: SafeDateTimeProps) {
@@ -13,6 +13,10 @@ export function SafeDateTime({ date }: SafeDateTimeProps) {
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  if (!date) {
+    return <span>-</span>
+  }
 
   return <span>{isClient ? formatWIBTimeDate(date) : ''}</span>
 }

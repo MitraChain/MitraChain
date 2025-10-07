@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { PropsWithChildren } from 'react'
 
-const RootPage = async ({ children }: PropsWithChildren) => {
+const RootPage = async () => {
   const supabase = await createClient()
 
   const {

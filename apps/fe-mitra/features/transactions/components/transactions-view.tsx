@@ -1,6 +1,5 @@
 'use client'
 
-import { useGetUser } from '@/features/auth/api/get-user'
 import { useDebounce } from '@uidotdev/usehooks'
 import { getErrorMessage } from '@workspace/lib/index'
 import { Input } from '@workspace/ui/components/input'
@@ -17,13 +16,10 @@ import TransactionItem from './transaction-item'
 import { TransactionItemSkeleton } from './transaction-item-skeleton'
 
 export function TransactionsView() {
-  const { data: userData } = useGetUser()
-  const ownerId = userData?.user?.id!
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
   const { data, error, isLoading, isFetching } = useGetTransactions({
-    ownerId,
     page,
     search: debouncedSearch,
   })
