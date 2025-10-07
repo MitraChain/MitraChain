@@ -1,13 +1,13 @@
-name = "mitrachain/umkm"
+name = "mitrachain/transaction-logger"
 version = "0.0.0"
 compiler = "v1.1.19"
 plutus = "v3"
 license = "Apache-2.0"
-description = "Aiken contracts for project 'mitrachain/umkm'"
+description = "Aiken contracts for project 'mitrachain/transaction-logger'"
 
 [repository]
 user = "mitrachain"
-project = "umkm"
+project = "transaction-logger"
 platform = "github"
 
 [[dependencies]]

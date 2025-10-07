@@ -1,0 +1,135 @@
+{
+  "preamble": {
+    "title": "mitrachain/transaction-logger",
+    "description": "Aiken contracts for project 'mitrachain/transaction-logger'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.19+e525483"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "batch_logger.batch_logger.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/batch_logger~1BatchDatum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/batch_logger~1BatchRedeemer"
+        }
+      },
+      "compiledCode": "5901c301010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144c8cc8a60022b30013001300a375400513259800980118059baa0078992cc004cdc399198008009bac3002300e375400644b30010018a40011337009001198010011809000a02048052264b30013370e6eb4c040c044c044c044c044c038dd500199198008009bac3003300f375400844b30010018a40011337006eb4c00cc040dd51809000998010011809800a0228acc004c8cc004004dd6180198079baa0042259800800c528c56600266e212000375a600660206ea8c048006266004004602600314a08071011456600330013371e6eb8c040c044c044c044c038dd5001a44100a50a514031159800cc004cdc79bae3010300e3754006910100a50a51403114a316403116403116403116403046020602200316402c4601e6020602000314a28050c034c02cdd50014528201298051baa0069806801a444b300130040028acc004c038dd5004c00e2c807a2b30013370e90010014566002601c6ea802600716403d1640308060601660180026e1d20003008375400516401830070013003375400f149a26cac80081",
+      "hash": "5037711966a647dce7e412a70ed7f6257ebfccba1d46a6f360d486b3"
+    },
+    {
+      "title": "batch_logger.batch_logger.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "5901c301010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144c8cc8a60022b30013001300a375400513259800980118059baa0078992cc004cdc399198008009bac3002300e375400644b30010018a40011337009001198010011809000a02048052264b30013370e6eb4c040c044c044c044c044c038dd500199198008009bac3003300f375400844b30010018a40011337006eb4c00cc040dd51809000998010011809800a0228acc004c8cc004004dd6180198079baa0042259800800c528c56600266e212000375a600660206ea8c048006266004004602600314a08071011456600330013371e6eb8c040c044c044c044c038dd5001a44100a50a514031159800cc004cdc79bae3010300e3754006910100a50a51403114a316403116403116403116403046020602200316402c4601e6020602000314a28050c034c02cdd50014528201298051baa0069806801a444b300130040028acc004c038dd5004c00e2c807a2b30013370e90010014566002601c6ea802600716403d1640308060601660180026e1d20003008375400516401830070013003375400f149a26cac80081",
+      "hash": "5037711966a647dce7e412a70ed7f6257ebfccba1d46a6f360d486b3"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "List$batch_logger/TransactionRecord": {
+      "dataType": "list",
+      "items": {
+        "$ref": "#/definitions/batch_logger~1TransactionRecord"
+      }
+    },
+    "batch_logger/BatchDatum": {
+      "title": "BatchDatum",
+      "anyOf": [
+        {
+          "title": "BatchDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "business_id",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "batch_number",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "transactions",
+              "$ref": "#/definitions/List$batch_logger~1TransactionRecord"
+            },
+            {
+              "title": "merkle_root",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "total_amount",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "recorded_at",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "batch_logger/BatchRedeemer": {
+      "title": "BatchRedeemer",
+      "anyOf": [
+        {
+          "title": "RecordBatch",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "VerifyBatch",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "batch_logger/TransactionRecord": {
+      "title": "TransactionRecord",
+      "anyOf": [
+        {
+          "title": "TransactionRecord",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "tx_id",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "amount",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "timestamp",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "customer_wallet",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
