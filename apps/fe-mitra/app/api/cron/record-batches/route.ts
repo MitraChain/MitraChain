@@ -1,21 +1,42 @@
-// apps/fe-mitra/app/api/cron/record-batches/route.ts
-import { recordBatchToBlockchain } from '@/lib/blockchain/cardano'
+import { calculateMerkleRoot } from '@/lib/blockchain/merkle'
+import plutusJson from '@/lib/blockchain/plutus.json'
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+import { Crypto } from '@peculiar/webcrypto'
+import fetch from 'node-fetch'
 
-// PENTING: Protect endpoint ini dengan secret key
+if (typeof globalThis.crypto === 'undefined') {
+  globalThis.crypto = new Crypto() as any
+}
+
+if (typeof globalThis.fetch === 'undefined') {
+  globalThis.fetch = fetch as any
+}
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+function safeMetadataString(value: string | undefined | null, maxBytes = 64): string {
+  if (!value) return ''
+  const encoder = new TextEncoder()
+  const bytes = encoder.encode(value)
+
+  if (bytes.length <= maxBytes) return value
+
+  const hash = crypto.createHash('sha1').update(value).digest('hex')
+  return hash.substring(0, Math.min(hash.length, maxBytes))
+}
+
 export async function POST(request: Request) {
   try {
-    // Verify cron secret
     const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET || 'your-secret-key'
-
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('=== Starting Batch Recording to Cardano ===')
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,122 +49,196 @@ export async function POST(request: Request) {
       },
     )
 
-    console.log('========== CRON JOB: Record Batches ==========')
+    const { data: businesses } = await supabase
+      .from('businesses')
+      .select('id, name, wallet_address, wallet_seed_phrase')
+      .not('wallet_address', 'is', null)
+      .not('wallet_seed_phrase', 'is', null)
 
-    // Get businesses dengan >= 10 pending transactions
-    const { data: businessesWithPending, error: queryError } = await supabase.rpc(
-      'get_businesses_ready_for_batch',
-    )
-
-    if (queryError) {
-      console.error('Query error:', queryError)
-      return NextResponse.json({ success: false, error: queryError.message }, { status: 500 })
-    }
-
-    if (!businessesWithPending || businessesWithPending.length === 0) {
-      console.log('No businesses ready for batch recording')
-      return NextResponse.json({ success: true, message: 'No batches to process' })
+    if (!businesses || businesses.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No businesses to process',
+      })
     }
 
     const results = []
 
-    // Process each business
-    for (const business of businessesWithPending) {
+    for (const business of businesses) {
       try {
-        console.log(`\nProcessing business: ${business.business_id}`)
-
-        // Get pending transactions (limit 10 per batch)
-        const { data: queueItems, error: queueError } = await supabase
+        const { data: pendingTxs, error: fetchError } = await supabase
           .from('transaction_batch_queue')
-          .select('id, transaction_id, transactions(*)')
-          .eq('business_id', business.business_id)
+          .select(
+            `
+            id,
+            transaction_id,
+            transactions!inner(
+              id,
+              total_amount,
+              created_at,
+              payment_status,
+              memberships!inner(wallet_address)
+            )
+          `,
+          )
+          .eq('business_id', business.id)
           .eq('is_recorded', false)
           .limit(10)
 
-        if (queueError || !queueItems || queueItems.length === 0) {
-          console.log(`No transactions found for ${business.business_id}`)
+        if (fetchError || !pendingTxs || pendingTxs.length < 10) {
+          console.log(`${business.name}: Less than 10 transactions, skipping`)
           continue
         }
 
-        const transactions = queueItems.map((item: any) => item.transactions)
-        const transactionIds = transactions.map((tx: any) => tx.id)
+        console.log(`${business.name}: Recording ${pendingTxs.length} transactions`)
 
-        console.log(`Found ${transactions.length} transactions to record`)
+        const txHashes = pendingTxs.map((tx) =>
+          crypto.createHash('sha256').update(tx.transaction_id).digest('hex'),
+        )
+        const merkleRoot = calculateMerkleRoot(txHashes)
 
-        // Record to blockchain
-        const blockchainResult = await recordBatchToBlockchain({
-          businessId: business.business_id,
-          transactions,
+        const { count: batchCount } = await supabase
+          .from('blockchain_batches')
+          .select('*', { count: 'exact', head: true })
+          .eq('business_id', business.id)
+
+        const batchNumber = (batchCount || 0) + 1
+
+        const txRecords = pendingTxs.map((tx: any) => {
+          const transaction = tx.transactions
+          const membership = Array.isArray(transaction.memberships)
+            ? transaction.memberships[0]
+            : transaction.memberships
+
+          return {
+            tx_id: tx.transaction_id,
+            amount: transaction.total_amount || 0,
+            timestamp: new Date(transaction.created_at || Date.now()).toISOString(),
+            customer_wallet: membership?.wallet_address || 'unknown',
+          }
         })
 
-        // Create batch record
-        const { data: batch, error: batchError } = await supabase
-          .from('blockchain_batches')
-          .insert({
-            business_id: business.business_id,
-            transaction_count: transactions.length,
-            total_amount: transactions.reduce((sum: number, tx: any) => sum + tx.total_amount, 0),
-            transaction_ids: transactionIds,
-            merkle_root: blockchainResult.merkleRoot,
-            onchain_tx_hash: blockchainResult.txHash,
-          })
-          .select()
-          .single()
+        const totalAmount = txRecords.reduce((sum, tx) => sum + tx.amount, 0)
 
-        if (batchError) {
-          console.error('Failed to create batch record:', batchError)
-          continue
-        }
+        // Submit to Cardano blockchain
+        const txHash = await submitToCardano({
+          business,
+          batchNumber,
+          txRecords,
+          merkleRoot,
+          totalAmount,
+        })
 
-        // Update queue items
-        const { error: updateError } = await supabase
+        const batchId = crypto.randomUUID()
+        await supabase.from('blockchain_batches').insert({
+          id: batchId,
+          business_id: business.id,
+          transaction_count: pendingTxs.length,
+          total_amount: totalAmount,
+          transaction_ids: pendingTxs.map((t) => t.transaction_id),
+          merkle_root: merkleRoot,
+          onchain_tx_hash: txHash,
+          recorded_at: new Date().toISOString(),
+          batch_number: batchNumber,
+        })
+
+        const queueIds = pendingTxs.map((tx) => tx.id)
+        await supabase
           .from('transaction_batch_queue')
           .update({
             is_recorded: true,
-            batch_id: batch.id,
+            batch_id: batchId,
           })
-          .in(
-            'id',
-            queueItems.map((item) => item.id),
-          )
-
-        if (updateError) {
-          console.error('Failed to update queue:', updateError)
-        }
-
-        // Update transactions with blockchain hash
-        await supabase
-          .from('transactions')
-          .update({
-            onchain_proof_hash: blockchainResult.txHash,
-          })
-          .in('id', transactionIds)
+          .in('id', queueIds)
 
         results.push({
-          business_id: business.business_id,
-          transaction_count: transactions.length,
-          tx_hash: blockchainResult.txHash,
+          business_id: business.id,
+          business_name: business.name,
+          batch_id: batchId,
+          batch_number: batchNumber,
+          tx_count: pendingTxs.length,
+          total_amount: totalAmount,
+          cardano_tx: txHash,
+          explorer_url: `https://preprod.cardanoscan.io/transaction/${txHash}`,
+          success: true,
         })
 
-        console.log(`✓ Batch recorded successfully`)
+        console.log(`✓ Batch #${batchNumber} recorded: ${txHash}`)
       } catch (error: any) {
-        console.error(`Error processing business ${business.business_id}:`, error)
+        console.error(`Failed for ${business.name}:`, error)
         results.push({
-          business_id: business.business_id,
+          business_id: business.id,
+          business_name: business.name,
+          success: false,
           error: error.message,
         })
       }
     }
 
-    console.log('========== CRON JOB COMPLETED ==========')
-
     return NextResponse.json({
       success: true,
-      batches_processed: results.length,
+      message: `Processed ${results.length} businesses`,
       results,
     })
   } catch (error: any) {
-    console.error('Cron job error:', error)
+    console.error('Cron error:', error)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
+}
+
+async function submitToCardano(data: {
+  business: any
+  batchNumber: number
+  txRecords: any[]
+  merkleRoot: string
+  totalAmount: number
+}) {
+  const { business, batchNumber, txRecords, merkleRoot, totalAmount } = data
+
+  const { Blockfrost, Lucid } = await import('lucid-cardano')
+
+  const blockfrost = new Blockfrost(
+    'https://cardano-preprod.blockfrost.io/api/v0',
+    process.env.BLOCKFROST_PROJECT_ID!,
+  )
+
+  const lucid = await Lucid.new(blockfrost, 'Preprod')
+  lucid.selectWalletFromSeed(business.wallet_seed_phrase)
+
+  // === FULL 10 TRANSACTIONS ===
+  const batchMetadata = {
+    protocol: 'MitraChain-v1.0',
+    type: 'transaction_batch',
+    business: {
+      id: safeMetadataString(business.id),
+      name: safeMetadataString(business.name),
+      wallet: safeMetadataString(business.wallet_address),
+    },
+    batch: {
+      number: batchNumber,
+      transaction_count: txRecords.length,
+      total_amount: totalAmount,
+      merkle_root: safeMetadataString(merkleRoot),
+      recorded_at: new Date().toISOString(),
+    },
+    transactions: txRecords.map((tx) => ({
+      id: safeMetadataString(tx.tx_id.substring(0, 16)),
+      amount: tx.amount,
+    })),
+    validation: {
+      validator_hash: safeMetadataString(plutusJson.validators[0]!.hash),
+      plutus_version: 'v3',
+    },
+  }
+
+  // === SUBMIT TO CARDANO ===
+  const tx = await lucid.newTx().attachMetadata(674, batchMetadata).complete()
+
+  const signedTx = await tx.sign().complete()
+  const txHash = await signedTx.submit()
+
+  console.log(`✓ Submitted to Cardano: ${txHash}`)
+  console.log(`  Explorer: https://preprod.cardanoscan.io/transaction/${txHash}`)
+
+  return txHash
 }
