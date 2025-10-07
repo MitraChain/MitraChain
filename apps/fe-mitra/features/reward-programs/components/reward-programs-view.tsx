@@ -18,6 +18,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@workspace/ui/components/pagination'
+import Link from 'next/link'
 import { useState } from 'react'
 
 import { useGetRewardPrograms } from '../api/get-reward-programs'
@@ -43,22 +44,28 @@ export function RewardProgramsView() {
     <div className="grid gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-pretty text-xl font-semibold">Reward Programs</h1>
-        <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-          <DialogTrigger asChild>
-            <Button>Add Program</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>New Reward Program</DialogTitle>
-            </DialogHeader>
-            <RewardProgramForm
-              onSuccess={() => {
-                setOpenCreate(false)
-              }}
-              onCancel={() => setOpenCreate(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Link href="/reward-programs/redeem">
+            <Button variant="outline">Redeem</Button>
+          </Link>
+
+          <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+            <DialogTrigger asChild>
+              <Button>Add Program</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>New Reward Program</DialogTitle>
+              </DialogHeader>
+              <RewardProgramForm
+                onSuccess={() => {
+                  setOpenCreate(false)
+                }}
+                onCancel={() => setOpenCreate(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
