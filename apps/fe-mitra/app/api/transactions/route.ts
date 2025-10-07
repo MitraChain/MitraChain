@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { membership_id, total_amount, cartItems, payment_method } = body
+    const { membership_id, total_amount, cartItems, payment_method, used_vouchers } = body
 
     if (!membership_id || !total_amount || !cartItems || cartItems.length === 0) {
       return NextResponse.json(
@@ -102,6 +102,23 @@ export async function POST(request: Request) {
 
       await supabase.from('memberships').update({ points: newTotalPoints }).eq('id', membership_id)
 
+      if (used_vouchers && used_vouchers.length > 0) {
+        const { error: voucherError } = await supabase
+          .from('reward_redemptions')
+          .update({
+            nft_redeemed: true,
+            nft_redeemed_at: new Date().toISOString(),
+            redeemed_by: kasir.id,
+          })
+          .in('id', used_vouchers)
+
+        if (voucherError) {
+          console.error('Failed to redeem vouchers:', voucherError)
+        } else {
+          console.log(`${used_vouchers.length} vouchers redeemed`)
+        }
+      }
+
       // ADD TO QUEUE untuk blockchain recording
       const { error: queueError } = await supabase.from('transaction_batch_queue').insert({
         business_id: membership.businesses.id,
@@ -123,8 +140,21 @@ export async function POST(request: Request) {
       console.log(`Pending transactions in queue: ${count}`)
 
       if (count && count >= 10) {
-        console.log('Batch threshold reached for business:', membership.businesses.id)
-        // TODO: Trigger blockchain batch recording
+        console.log('Batch threshold reached, triggering blockchain recording...')
+
+        // Trigger batch recording
+        fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/cron/record-batches`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.CRON_SECRET}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+          .then(() => console.log('Blockchain batch recording triggered'))
+          .catch((err) => console.error('Failed to trigger batch recording:', err))
       }
 
       return NextResponse.json({
@@ -158,6 +188,9 @@ export async function POST(request: Request) {
             'shopeepay',
             'qris',
           ],
+          callbacks: {
+            finish: 'https://uncognized-aiden-lumberly.ngrok-free.dev/create-transaction',
+          },
         }
 
         const midtransTransaction = await snap.createTransaction(parameter)
