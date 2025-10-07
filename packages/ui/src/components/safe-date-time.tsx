@@ -1,6 +1,6 @@
 'use client'
 
-import { formatWIBTimeDate } from '@workspace/lib'
+import { formatWIBTimeDate } from '@workspace/lib/index.ts'
 import { useEffect, useState } from 'react'
 
 interface SafeDateTimeProps {
