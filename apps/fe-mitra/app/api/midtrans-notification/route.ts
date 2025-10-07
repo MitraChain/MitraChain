@@ -74,10 +74,21 @@ export async function POST(request: Request) {
       // Update membership points
       const { error: updateMemberError } = await supabase
         .from('memberships')
-        .update({
-          points: newTotalPoints,
-        })
+        .update({ points: newTotalPoints })
         .eq('id', transaction.membership_id)
+
+      if (transaction.metadata?.used_vouchers?.length > 0) {
+        await supabase
+          .from('reward_redemptions')
+          .update({
+            nft_redeemed: true,
+            nft_redeemed_at: new Date().toISOString(),
+            redeemed_by: transaction.memberships.user_id,
+          })
+          .in('id', transaction.metadata.used_vouchers)
+
+        console.log(`${transaction.metadata.used_vouchers.length} vouchers redeemed`)
+      }
 
       if (updateMemberError) {
         console.error('Failed to update points:', updateMemberError)
@@ -121,8 +132,20 @@ export async function POST(request: Request) {
 
       if (count && count >= 10) {
         console.log('Batch threshold reached, triggering blockchain recording...')
-        // TODO: Trigger cron job atau call API untuk record ke blockchain
-        // Untuk sekarang, just log
+
+        // Trigger batch recording
+        fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/cron/record-batches`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.CRON_SECRET}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+          .then(() => console.log('Blockchain batch recording triggered'))
+          .catch((err) => console.error('Failed to trigger batch recording:', err))
       }
 
       console.log('Transaction completed, points updated')
