@@ -1,9 +1,9 @@
 'use client'
 
 import { useStepStore } from '../store/step-store'
+import TransactionForm from '../transaction-form/components/transaction-form'
 import ScanMember from './scan-member'
 import SelectItems from './select-items'
-import TransactionForm from './transaction-form'
 
 const CreateTransaction = () => {
   const { step } = useStepStore()
