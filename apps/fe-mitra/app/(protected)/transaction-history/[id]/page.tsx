@@ -1,5 +1,10 @@
 import { TransactionDetailView } from '@/features/transactions/components/transaction-detail-page'
 
-export default function TransactionDetailPage({ params }: { params: { id: string } }) {
-  return <TransactionDetailView transactionId={params.id} />
+export default async function TransactionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  return <TransactionDetailView transactionId={id} />
 }
