@@ -36,7 +36,7 @@ export function HeroSection() {
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[#0b4a8f]/5 blur-xl" />
       </div>
 
-      <div className="container relative mx-auto flex min-h-[calc(100vh-5rem)] items-center px-6 py-20">
+      <div className="py-25 container relative mx-auto flex min-h-[calc(100vh-5rem)] items-center px-6">
         <div className="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="space-y-8">
             <div
@@ -55,7 +55,7 @@ export function HeroSection() {
               Built on Cardano Blockchain
             </div>
 
-            <h1 className="text-balance text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl">
+            <h1 className="mx-0.5 text-balance text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl">
               <span className="text-white">Empowering</span> Small Businesses with{' '}
               <span className="bg-gradient-to-r from-[#00c7c7] via-[#00c7c7] to-[#003366] bg-clip-text text-transparent">
                 Blockchain
@@ -65,7 +65,7 @@ export function HeroSection() {
               </div>
             </h1>
 
-            <p className="max-w-xl text-pretty text-lg leading-relaxed text-gray-400">
+            <p className="mx-0.5 max-w-xl text-pretty text-lg leading-relaxed text-gray-400">
               Mitrachain connects UMKM with customers through secure, transparent digital
               memberships powered by Cardano blockchain technology. Experience the future of loyalty
               programs.
@@ -92,26 +92,32 @@ export function HeroSection() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-8 pt-4">
-              <div>
-                <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
-                  15K+
+            <div>
+              <div className="flex flex-col items-center justify-center gap-6 px-6 pt-4 sm:flex-row sm:gap-8 sm:px-0">
+                <div className="text-center sm:text-left">
+                  <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
+                    15K+
+                  </div>
+                  <div className="text-sm text-gray-500">Members</div>
                 </div>
-                <div className="text-sm text-gray-500">Members</div>
-              </div>
-              <div className="h-12 w-px bg-white/10" />
-              <div>
-                <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
-                  800+
+
+                <div className="h-px w-16 bg-white/10 sm:h-12 sm:w-px" />
+
+                <div className="text-center sm:text-left">
+                  <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
+                    800+
+                  </div>
+                  <div className="text-sm text-gray-500">UMKM Partners</div>
                 </div>
-                <div className="text-sm text-gray-500">UMKM Partners</div>
-              </div>
-              <div className="h-12 w-px bg-white/10" />
-              <div>
-                <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
-                  100%
+
+                <div className="h-px w-16 bg-white/10 sm:h-12 sm:w-px" />
+
+                <div className="text-center sm:text-left">
+                  <div className="text-3xl font-bold" style={{ color: '#00c7c7' }}>
+                    100%
+                  </div>
+                  <div className="text-sm text-gray-500">Secure</div>
                 </div>
-                <div className="text-sm text-gray-500">Secure</div>
               </div>
             </div>
           </div>

@@ -4,7 +4,6 @@ import { FeaturesSection } from '@/features/landing-page/components/features-sec
 import { Footer } from '@/features/landing-page/components/footer'
 import { HeroSection } from '@/features/landing-page/components/hero-section'
 import { Navbar } from '@/features/landing-page/components/navbar'
-import { PartnersSection } from '@/features/landing-page/components/partners-section'
 
 export default function LandingPage() {
   return (
@@ -13,7 +12,6 @@ export default function LandingPage() {
       <HeroSection />
       <AboutSection />
       <FeaturesSection />
-      <PartnersSection />
       <CTASection />
       <Footer />
     </main>

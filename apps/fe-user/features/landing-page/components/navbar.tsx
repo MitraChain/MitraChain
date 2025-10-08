@@ -51,10 +51,10 @@ export function Navbar() {
 
         <div className="hidden items-center gap-8 md:flex">
           <Link
-            href="#home"
+            href="/auth"
             className="text-sm font-medium text-gray-300 transition-colors hover:text-[#00c7c7]"
           >
-            Home
+            Get Started
           </Link>
           <Link
             href="#about"
@@ -67,12 +67,6 @@ export function Navbar() {
             className="text-sm font-medium text-gray-300 transition-colors hover:text-[#00c7c7]"
           >
             Features
-          </Link>
-          <Link
-            href="#partners"
-            className="text-sm font-medium text-gray-300 transition-colors hover:text-[#00c7c7]"
-          >
-            Partners
           </Link>
         </div>
 
