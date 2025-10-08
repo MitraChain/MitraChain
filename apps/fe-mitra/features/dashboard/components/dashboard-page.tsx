@@ -1,49 +1,54 @@
 'use client'
 
-import { useGetUser } from '@/features/auth/api/get-user'
+import { transformNumberToRupiahMask } from '@workspace/lib/maskito'
+import { Activity, DollarSign, Package, Users } from 'lucide-react'
+import { useGetDashboardStats } from '../api/get-dashboard-stats'
+import { StatCard, StatCardSkeleton } from './stat-card'
 
-const Dashboard = () => {
-  useGetUser()
+export default function DashboardPage() {
+  const { data: stats, isPending } = useGetDashboardStats()
+
+  if (isPending) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+    )
+  }
+
+  if (!stats && !isPending) {
+    return <p className="text-muted-foreground">Could not load dashboard stats.</p>
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-foreground text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome to MitraChain Admin Portal</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="border-border bg-card rounded-lg border p-6">
-          <div className="text-muted-foreground text-sm font-medium">Total Sales</div>
-          <div className="text-card-foreground mt-2 text-2xl font-bold">$0.00</div>
-          <p className="text-muted-foreground mt-1 text-xs">Placeholder data</p>
-        </div>
-
-        <div className="border-border bg-card rounded-lg border p-6">
-          <div className="text-muted-foreground text-sm font-medium">Products</div>
-          <div className="text-card-foreground mt-2 text-2xl font-bold">0</div>
-          <p className="text-muted-foreground mt-1 text-xs">Active products</p>
-        </div>
-
-        <div className="border-border bg-card rounded-lg border p-6">
-          <div className="text-muted-foreground text-sm font-medium">Transactions</div>
-          <div className="text-card-foreground mt-2 text-2xl font-bold">0</div>
-          <p className="text-muted-foreground mt-1 text-xs">This month</p>
-        </div>
-
-        <div className="border-border bg-card rounded-lg border p-6">
-          <div className="text-muted-foreground text-sm font-medium">Loyalty Members</div>
-          <div className="text-card-foreground mt-2 text-2xl font-bold">0</div>
-          <p className="text-muted-foreground mt-1 text-xs">Active members</p>
-        </div>
-      </div>
-
-      <div className="border-border bg-card rounded-lg border p-6">
-        <h2 className="text-card-foreground mb-4 text-lg font-semibold">Top Selling Products</h2>
-        <p className="text-muted-foreground text-sm">No data available yet</p>
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <StatCard
+        title="Total Sales (This Month)"
+        value={transformNumberToRupiahMask(stats.total_sales_this_month)}
+        description="Total revenue generated this month"
+        icon={<DollarSign className="text-muted-foreground h-4 w-4" />}
+      />
+      <StatCard
+        title="Total Products"
+        value={stats.total_products}
+        description="Total number of active products"
+        icon={<Package className="text-muted-foreground h-4 w-4" />}
+      />
+      <StatCard
+        title="Transactions (This Month)"
+        value={stats.total_transactions_this_month}
+        description="Number of sales this month"
+        icon={<Activity className="text-muted-foreground h-4 w-4" />}
+      />
+      <StatCard
+        title="Total Members"
+        value={stats.total_memberships}
+        description="Total loyalty program members"
+        icon={<Users className="text-muted-foreground h-4 w-4" />}
+      />
     </div>
   )
 }
-
-export default Dashboard
