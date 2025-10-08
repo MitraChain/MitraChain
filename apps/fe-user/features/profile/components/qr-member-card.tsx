@@ -16,27 +16,22 @@ export function QRMemberCard() {
   const { data, isLoading } = useGetUser()
 
   const qrData = useMemo(() => {
-    if (!data) return ''
-    return JSON.stringify({
-      user_id: data.user.id,
-      email: data.user.email,
-      wallet_address: data.walletAddress,
-      type: 'mitrachain_member',
-    })
+    if (!data?.user?.id) return ''
+    return data.user.id
   }, [data])
 
   const handleCopyUserId = () => {
-    if (!data) return
+    if (!data?.user?.id) return
     navigator.clipboard.writeText(data.user.id)
     toast.success('User ID copied to clipboard!')
   }
 
   const handleDownloadQR = () => {
     const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement
-    if (canvas && data) {
+    if (canvas && data?.user?.email) {
       const url = canvas.toDataURL('image/png')
       const link = document.createElement('a')
-      link.download = `mitrachain-member-${data.user.email?.split('@')[0]}.png`
+      link.download = `mitrachain-member-${data.user.email.split('@')[0]}.png`
       link.href = url
       link.click()
       toast.success('QR Code downloaded successfully!')
@@ -52,6 +47,7 @@ export function QRMemberCard() {
         </CardTitle>
         <CardDescription>Show this QR when registering at businesses</CardDescription>
       </CardHeader>
+
       <CardContent className="flex flex-col items-center">
         {isLoading || !qrData ? (
           <div className="bg-muted flex h-64 w-64 items-center justify-center rounded-lg">

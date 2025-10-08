@@ -1,4 +1,3 @@
-// apps/fe-mitra/app/api/scan-member/route.ts
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -19,22 +18,23 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { qr_data } = body
 
-    if (!qr_data) {
-      return NextResponse.json({ success: false, error: 'QR data required' }, { status: 400 })
+    if (!qr_data || typeof qr_data !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'QR data (user_id) required' },
+        { status: 400 },
+      )
     }
 
-    let qrPayload
-    try {
-      qrPayload = JSON.parse(qr_data)
-    } catch (e) {
-      console.error('QR parse error:', e)
-      return NextResponse.json({ success: false, error: 'Invalid QR format' }, { status: 400 })
+    // Validasi user_id sebagai UUID v4
+    const uuidRegex =
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+    if (!uuidRegex.test(qr_data)) {
+      return NextResponse.json({ success: false, error: 'Invalid user_id format' }, { status: 400 })
     }
 
-    if (qrPayload.type !== 'mitrachain_member') {
-      return NextResponse.json({ success: false, error: 'Invalid QR type' }, { status: 400 })
-    }
+    const user_id = qr_data
 
+    // Temukan bisnis milik kasir
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id, name')
@@ -51,11 +51,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check membership existing
+    // Cek apakah member sudah ada
     const { data: existingMembership, error: checkError } = await supabase
       .from('memberships')
       .select('*')
-      .eq('user_id', qrPayload.user_id)
+      .eq('user_id', user_id)
       .eq('business_id', business.id)
       .maybeSingle()
 
@@ -65,14 +65,14 @@ export async function POST(request: Request) {
 
     let membershipData = existingMembership
 
+    // Jika belum ada, daftarkan otomatis
     if (!existingMembership) {
-      // Auto register member baru
       const { data: newMembership, error: insertError } = await supabase
         .from('memberships')
         .insert({
-          user_id: qrPayload.user_id,
+          user_id,
           business_id: business.id,
-          wallet_address: qrPayload.wallet_address,
+          wallet_address: '',
           nft_id: '',
           points: 0,
           stamps: 0,
@@ -83,10 +83,7 @@ export async function POST(request: Request) {
       if (insertError) {
         console.error('Insert membership error:', insertError)
         return NextResponse.json(
-          {
-            success: false,
-            error: `Failed to create membership: ${insertError.message}`,
-          },
+          { success: false, error: `Failed to create membership: ${insertError.message}` },
           { status: 500 },
         )
       }
@@ -94,23 +91,23 @@ export async function POST(request: Request) {
       membershipData = newMembership
     }
 
-    // Fetch NFT vouchers (completed redemptions yang belum di-redeem)
+    // Ambil voucher NFT yang belum di-redeem
     const { data: nftVouchers, error: vouchersError } = await supabase
       .from('reward_redemptions')
       .select(
         `
-    id,
-    nft_id,
-    nft_redeemed,
-    reward_program_id,
-    reward_programs (
-      id,
-      name,
-      type,
-      threshold,
-      reward_description
-    )
-  `,
+        id,
+        nft_id,
+        nft_redeemed,
+        reward_program_id,
+        reward_programs (
+          id,
+          name,
+          type,
+          threshold,
+          reward_description
+        )
+      `,
       )
       .eq('membership_id', membershipData.id)
       .eq('status', 'completed')
@@ -121,20 +118,23 @@ export async function POST(request: Request) {
       console.error('Error fetching vouchers:', vouchersError)
     }
 
-    console.log(nftVouchers)
-
-    // Format vouchers data
     const formattedVouchers =
-      nftVouchers?.map((voucher) => ({
-        id: voucher.id,
-        nft_id: voucher.nft_id,
-        nft_redeemed: voucher.nft_redeemed,
-        reward_program_id: voucher.reward_program_id,
-        reward_program_name: voucher.reward_programs?.name || 'Unknown',
-        reward_program_type: voucher.reward_programs?.type || 'point',
-        reward_threshold: voucher.reward_programs?.threshold || 0,
-        reward_description: voucher.reward_programs?.reward_description || '',
-      })) || []
+      nftVouchers?.map((voucher) => {
+        const rewardProgram = Array.isArray(voucher.reward_programs)
+          ? voucher.reward_programs[0]
+          : voucher.reward_programs
+
+        return {
+          id: voucher.id,
+          nft_id: voucher.nft_id,
+          nft_redeemed: voucher.nft_redeemed,
+          reward_program_id: voucher.reward_program_id,
+          reward_program_name: rewardProgram?.name || 'Unknown',
+          reward_program_type: rewardProgram?.type || 'point',
+          reward_threshold: rewardProgram?.threshold || 0,
+          reward_description: rewardProgram?.reward_description || '',
+        }
+      }) || []
 
     return NextResponse.json({
       success: true,
@@ -151,10 +151,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Scan member error:', error)
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Internal server error',
-      },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 },
     )
   }
