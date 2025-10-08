@@ -1,4 +1,3 @@
-// apps/fe-mitra/src/features/transactions/components/scan-qr-dialog.tsx
 'use client'
 
 import { Button } from '@workspace/ui/components/button'
@@ -12,9 +11,10 @@ import {
 import { Label } from '@workspace/ui/components/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Textarea } from '@workspace/ui/components/textarea'
-import jsQR from 'jsqr' // Import jsQR
+import jsQR from 'jsqr'
 import { Camera, Loader2, QrCode, Type } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { useScanMember } from '../api/scan-member'
 
 interface ScanQRDialogProps {
@@ -30,8 +30,7 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const isScanning = useRef(false) // Prevent multiple scans
+  const isScanning = useRef(false)
 
   const scanMutation = useScanMember({
     mutationConfig: {
@@ -41,8 +40,15 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
         onOpenChange(false)
         setQrData('')
       },
+      onError: (error: any) => {
+        toast.error(error?.message || 'Failed to scan member.')
+        isScanning.current = false // biar bisa scan ulang setelah gagal
+      },
     },
   })
+
+  const uuidRegex =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
 
   const startCamera = async () => {
     try {
@@ -54,15 +60,13 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
         videoRef.current.srcObject = stream
         streamRef.current = stream
         setIsCameraReady(true)
-
-        // Wait for video to be ready before scanning
         videoRef.current.onloadedmetadata = () => {
           startScanning()
         }
       }
     } catch (error) {
       console.error('Camera access error:', error)
-      alert('Unable to access camera. Please use manual input.')
+      toast.error('Unable to access camera. Please use manual input.')
       setActiveTab('manual')
     }
   }
@@ -72,21 +76,16 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
       streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
-    }
     setIsCameraReady(false)
     isScanning.current = false
   }
 
   const startScanning = () => {
-    if (!videoRef.current || !canvasRef.current) return
-
     const video = videoRef.current
     const canvas = canvasRef.current
-    const context = canvas.getContext('2d')
+    if (!video || !canvas) return
 
+    const context = canvas.getContext('2d')
     if (!context) return
 
     const scan = () => {
@@ -96,45 +95,44 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
         context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-
-        // Decode QR dengan jsQR
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'dontInvert',
         })
 
         if (code && code.data) {
-          console.log('QR Code detected:', code.data)
+          const scannedValue = code.data.trim()
+
+          if (!uuidRegex.test(scannedValue)) {
+            toast.error('Invalid QR format. Expected a user ID (UUID).')
+            return
+          }
+
           isScanning.current = true
-          scanMutation.mutate(code.data)
+          scanMutation.mutate(scannedValue)
           stopCamera()
         }
       }
+      if (streamRef.current) requestAnimationFrame(scan)
     }
 
-    // Scan continuously using requestAnimationFrame (lebih smooth dari setInterval)
-    const scanLoop = () => {
-      scan()
-      if (streamRef.current) {
-        requestAnimationFrame(scanLoop)
-      }
-    }
-
-    scanLoop()
+    scan()
   }
 
   useEffect(() => {
-    if (open && activeTab === 'camera') {
-      startCamera()
-    }
-
-    return () => {
-      stopCamera()
-    }
+    if (open && activeTab === 'camera') startCamera()
+    return () => stopCamera()
   }, [open, activeTab])
 
   const handleManualScan = () => {
-    if (!qrData.trim()) return
-    scanMutation.mutate(qrData)
+    const scannedValue = qrData.trim()
+
+    if (!scannedValue) return
+    if (!uuidRegex.test(scannedValue)) {
+      toast.error('Invalid input. Expected a user ID (UUID).')
+      return
+    }
+
+    scanMutation.mutate(scannedValue)
   }
 
   return (
@@ -146,7 +144,7 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
             Scan Member QR
           </DialogTitle>
           <DialogDescription>
-            Scan with camera or paste QR data from customer's MitraChain app
+            Scan with camera or paste user ID from MitraChain member QR
           </DialogDescription>
         </DialogHeader>
 
@@ -162,6 +160,7 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
             </TabsTrigger>
           </TabsList>
 
+          {/* === CAMERA TAB === */}
           <TabsContent value="camera" className="space-y-4">
             <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-black">
               <video
@@ -179,7 +178,6 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
                 </div>
               )}
 
-              {/* Scanning indicator */}
               {isCameraReady && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="h-64 w-64 rounded-lg border-2 border-white">
@@ -191,20 +189,22 @@ export function ScanQRDialog({ open, onOpenChange, onMemberScanned }: ScanQRDial
                 </div>
               )}
             </div>
+
             <p className="text-muted-foreground text-center text-sm">
               Position QR code within the frame
             </p>
           </TabsContent>
 
+          {/* === MANUAL TAB === */}
           <TabsContent value="manual" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="qr-data">QR Data</Label>
+              <Label htmlFor="qr-data">User ID</Label>
               <Textarea
                 id="qr-data"
-                placeholder="Paste QR data here..."
+                placeholder="Paste user ID (UUID) here..."
                 value={qrData}
                 onChange={(e) => setQrData(e.target.value)}
-                rows={6}
+                rows={4}
                 disabled={scanMutation.isPending}
                 className="font-mono text-xs"
               />
