@@ -75,7 +75,6 @@ export async function POST(request: Request) {
           wallet_address: '',
           nft_id: '',
           points: 0,
-          stamps: 0,
         })
         .select()
         .single()
