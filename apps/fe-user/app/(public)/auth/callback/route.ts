@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Auth callback error:', error)
-      return NextResponse.redirect(`${requestUrl.origin}/auth?error=auth_failed`)
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/auth?error=auth_failed`)
     }
 
     if (user) {
@@ -30,14 +30,14 @@ export async function GET(request: Request) {
       }
 
       if (walletData && walletData.wallet_address) {
-        return NextResponse.redirect(`${requestUrl.origin}/memberships`)
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/memberships`)
       }
 
       // New user without wallet → go to onboarding
       console.log('New user without wallet, redirecting to onboarding')
-      return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/onboarding`)
     }
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/auth?error=no_code`)
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/auth?error=no_code`)
 }

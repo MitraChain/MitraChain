@@ -1,5 +1,6 @@
 'use client'
 
+import Container from '@/components/container'
 import { useGetUser } from '@/features/auth/api/get-user'
 import { PRODUCTS_PAGE_SIZE } from '@/features/products/api/get-products'
 import { useGetInfiniteProducts } from '@/features/products/api/get-products-infinite'
@@ -61,7 +62,7 @@ function SelectItems() {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <Container>
       <h1 className="mb-6 text-2xl font-semibold">Create New Transaction</h1>
 
       <Input
@@ -145,7 +146,7 @@ function SelectItems() {
           </div>
         </>
       )}
-    </div>
+    </Container>
   )
 }
 
