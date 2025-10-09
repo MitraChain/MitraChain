@@ -5,7 +5,7 @@ import { transformNumberToRupiahMask } from '@workspace/lib'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
 import { SafeDateTime } from '@workspace/ui/components/safe-date-time'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, SquareArrowOutUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { useGetTransactionById } from '../api/get-transaction-by-id'
 
@@ -48,6 +48,24 @@ export function TransactionDetailView({ transactionId }: { transactionId: string
             <div className="flex justify-between">
               <span className="text-muted-foreground">QRIS ID</span>
               <span className="font-mono text-xs">{transaction?.qris_tx_id || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">On-chain Hash</span>
+              <span className="flex items-center gap-1 font-mono text-xs">
+                <a
+                  href={`https://preprod.cardanoscan.io/transaction/${transaction?.onchain_proof_hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary flex items-center gap-1 font-mono text-xs text-white underline transition-colors"
+                >
+                  {transaction?.onchain_proof_hash
+                    ? `${transaction.onchain_proof_hash.slice(0, 8)}...${transaction.onchain_proof_hash.slice(-6)}`
+                    : 'N/A'}
+                  {transaction?.onchain_proof_hash && (
+                    <SquareArrowOutUpRight className="h-3.5 w-3.5" />
+                  )}
+                </a>
+              </span>
             </div>
           </CardContent>
         </Card>
