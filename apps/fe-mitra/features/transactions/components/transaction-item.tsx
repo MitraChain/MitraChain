@@ -17,10 +17,18 @@ function TransactionItem({ transaction }: Readonly<Props>) {
       <div className="text-muted-foreground flex flex-col gap-0.5 text-sm">
         <span>
           <a
-            href={`https://preprod.cardanoscan.io/transaction/${transaction?.onchain_proof_hash}`}
+            href={
+              transaction?.onchain_proof_hash
+                ? `https://preprod.cardanoscan.io/transaction/${transaction.onchain_proof_hash}`
+                : undefined
+            }
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-primary flex items-center gap-1 font-mono text-xs text-white underline transition-colors"
+            className={`flex items-center gap-1 font-mono text-xs text-white transition-colors ${
+              transaction?.onchain_proof_hash
+                ? 'hover:text-primary underline'
+                : 'cursor-default opacity-50'
+            }`}
           >
             {transaction?.onchain_proof_hash
               ? `${transaction.onchain_proof_hash.slice(0, 6)}...${transaction.onchain_proof_hash.slice(-12)}`
