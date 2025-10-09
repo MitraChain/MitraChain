@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { order_id } = await req.json()
 
     // Cek status transaksi dari Midtrans
-    const response = await fetch(`https://api.midtrans.com/v2/${order_id}/status`, {
+    const response = await fetch(`https://api.sandbox.midtrans.com/v2/${order_id}/status`, {
       headers: {
         Authorization: `Basic ${Buffer.from(process.env.MIDTRANS_SERVER_KEY + ':').toString('base64')}`,
       },
