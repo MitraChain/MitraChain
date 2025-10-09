@@ -52,11 +52,7 @@ export async function POST(request: Request) {
       { auth: { autoRefreshToken: false, persistSession: false } },
     )
 
-    const { data: businesses } = await supabase
-      .from('businesses')
-      .select('id, name, wallet_address, wallet_seed_phrase')
-      .not('wallet_address', 'is', null)
-      .not('wallet_seed_phrase', 'is', null)
+    const { data: businesses } = await supabase.from('businesses').select('id, name')
 
     if (!businesses || businesses.length === 0) {
       return NextResponse.json({ success: true, message: 'No businesses to process' })
@@ -145,13 +141,11 @@ export async function POST(request: Request) {
         const transactionIds = pendingTxs.map((tx) => tx.transaction_id)
         const queueIds = pendingTxs.map((tx) => tx.id)
 
-        // ✅ Update semua transaksi dengan onchain_proof_hash
         await supabase
           .from('transactions')
           .update({ onchain_proof_hash: txHash })
           .in('id', transactionIds)
 
-        // ✅ Hapus queue agar tidak menumpuk
         await supabase.from('transaction_batch_queue').delete().in('id', queueIds)
 
         results.push({
@@ -203,7 +197,7 @@ async function submitToCardano(data: {
   )
 
   const lucid = await Lucid.new(blockfrost, 'Preprod')
-  lucid.selectWalletFromSeed(business.wallet_seed_phrase)
+  lucid.selectWalletFromSeed(process.env.CARDANO_WALLET_SEED_PHRASE!)
 
   const batchMetadata = {
     protocol: 'MitraChain-v1.0',
@@ -211,7 +205,7 @@ async function submitToCardano(data: {
     business: {
       id: safeMetadataString(business.id),
       name: safeMetadataString(business.name),
-      wallet: safeMetadataString(business.wallet_address),
+      wallet: safeMetadataString(process.env.CARDANO_WALLET_ADDRESS!),
     },
     batch: {
       number: batchNumber,
