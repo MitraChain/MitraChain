@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TransactionStep = 'select-items' | 'finalization'
+export type TransactionStep = 'select-items' | 'scan-member' | 'finalization'
 
 interface StepState {
   step: TransactionStep

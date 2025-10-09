@@ -18,9 +18,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@workspace/ui/components/pagination'
+import Link from 'next/link'
 import { useState } from 'react'
 
-import Container from '@/components/container'
 import { useGetRewardPrograms } from '../api/get-reward-programs'
 import { RewardProgramForm } from './reward-program-form'
 import { RewardProgramItemSkeleton } from './reward-program-item-skeleton'
@@ -41,10 +41,14 @@ export function RewardProgramsView() {
   const meta = data?.meta
 
   return (
-    <Container>
-      <div className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-pretty text-xl font-semibold">Reward Programs</h1>
+    <div className="grid gap-4 p-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-pretty text-xl font-semibold">Reward Programs</h1>
+        <div className="flex gap-2">
+          <Link href="/reward-programs/redeem">
+            <Button variant="outline">Redeem</Button>
+          </Link>
+
           <Dialog open={openCreate} onOpenChange={setOpenCreate}>
             <DialogTrigger asChild>
               <Button>Add Program</Button>
@@ -62,56 +66,60 @@ export function RewardProgramsView() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search programs..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
-          />
-        </div>
-        <div className="grid gap-3">
-          {isLoading &&
-            Array.from({ length: 5 }).map((_, index) => <RewardProgramItemSkeleton key={index} />)}
-          {!isLoading && error && <div>Error: {getErrorMessage(error)}</div>}
-          {!isLoading && !error && rewardPrograms.length === 0 && (
-            <div>No reward programs found.</div>
-          )}
-          {!isLoading &&
-            !error &&
-            rewardPrograms.length > 0 &&
-            rewardPrograms.map((program) => (
-              <RewardProgramItem key={program.id} program={program} />
-            ))}
-        </div>
-        {meta && meta.totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                  className={meta.currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                />
-              </PaginationItem>
-              <PaginationItem>
-                <span className="p-2 text-sm">
-                  Page {meta.currentPage} of {meta.totalPages}
-                </span>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPages))}
-                  className={
-                    meta.currentPage === meta.totalPages ? 'pointer-events-none opacity-50' : ''
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
       </div>
-    </Container>
+
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder="Search programs..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
+        />
+      </div>
+
+      <div className="grid gap-3">
+        {isLoading &&
+          Array.from({ length: 5 }).map((_, index) => <RewardProgramItemSkeleton key={index} />)}
+
+        {!isLoading && error && <div>Error: {getErrorMessage(error)}</div>}
+
+        {!isLoading && !error && rewardPrograms.length === 0 && (
+          <div>No reward programs found.</div>
+        )}
+
+        {!isLoading &&
+          !error &&
+          rewardPrograms.length > 0 &&
+          rewardPrograms.map((program) => <RewardProgramItem key={program.id} program={program} />)}
+      </div>
+
+      {meta && meta.totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                className={meta.currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <span className="p-2 text-sm">
+                Page {meta.currentPage} of {meta.totalPages}
+              </span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPages))}
+                className={
+                  meta.currentPage === meta.totalPages ? 'pointer-events-none opacity-50' : ''
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </div>
   )
 }

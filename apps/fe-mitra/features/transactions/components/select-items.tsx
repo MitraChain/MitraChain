@@ -135,7 +135,7 @@ function SelectItems() {
                       toast.error('Please select at least one product.')
                       return
                     }
-                    setStep('finalization')
+                    setStep('scan-member')
                   }}
                   disabled={isCartEmpty}
                 >

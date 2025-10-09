@@ -12,8 +12,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@blockfrost/blockfrost-js": "^6.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@maskito/react": "^3.11.1",
+    "@peculiar/webcrypto": "^1.5.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
     "@supabase/ssr": "^0.7.0",
@@ -25,19 +27,30 @@
     "@workspace/query-config": "workspace:*",
     "@workspace/supabase": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "dotenv": "^17.2.3",
+    "html5-qrcode": "^2.3.8",
+    "jsqr": "^1.4.0",
+    "lucid-cardano": "^0.10.11",
     "lucide-react": "^0.475.0",
+    "midtrans-client": "^1.4.3",
     "next": "^15.4.5",
     "next-themes": "^0.4.6",
+    "node-fetch": "^2.7.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
     "react-intersection-observer": "^9.16.0",
+    "react-qr-reader": "3.0.0-beta-1",
     "sonner": "^2.0.7",
     "zod": "^3.25.76",
     "zustand": "^5.0.8"
   },
+  "resolutions": {
+    "node-fetch": "^2.7.0"
+  },
   "devDependencies": {
     "@types/node": "^20.19.9",
+    "@types/node-fetch": "2",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@workspace/eslint-config": "workspace:^",

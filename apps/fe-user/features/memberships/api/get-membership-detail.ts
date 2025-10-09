@@ -1,17 +1,7 @@
+import { createClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 
-import { createClient } from '@/lib/supabase/client'
-import { Business, Membership, RewardProgram } from '@workspace/supabase'
-
-type BusinessWithRewards = Business & {
-  reward_programs: RewardProgram[]
-}
-
-export type MembershipDetail = Membership & {
-  businesses: BusinessWithRewards | null
-}
-
-export const getMembershipById = async (membershipId: string): Promise<MembershipDetail | null> => {
+export const getMembershipById = async (membershipId: string) => {
   const supabase = createClient()
 
   const { data, error } = await supabase
@@ -20,21 +10,64 @@ export const getMembershipById = async (membershipId: string): Promise<Membershi
       `
       *,
       businesses (
-        *,
-        reward_programs (*)
+        id,
+        name,
+        reward_programs (
+          id,
+          name,
+          type,
+          threshold,
+          reward_description,
+          is_active
+        )
       )
     `,
     )
     .eq('id', membershipId)
     .single()
 
-  if (error) {
-    if (error.code === 'PGRST116') return null
-    console.error('Error fetching membership details:', error)
-    throw new Error(error.message || 'Failed to fetch membership details.')
-  }
+  if (error) throw error
 
-  return data as MembershipDetail
+  // Fetch pending redemptions separately
+  const { data: pendingRedemptions } = await supabase
+    .from('reward_redemptions')
+    .select(
+      `
+      id,
+      status,
+      requested_at,
+      points_spent,
+      reward_programs (
+        name
+      )
+    `,
+    )
+    .eq('membership_id', membershipId)
+    .eq('status', 'pending')
+
+  const { data: completedVouchers } = await supabase
+    .from('reward_redemptions')
+    .select(
+      `
+      id,
+      nft_id,
+      nft_redeemed,
+      redeemed_by,
+      completed_at,
+      reward_programs (
+        name,
+        reward_description
+      )
+    `,
+    )
+    .eq('membership_id', membershipId)
+    .eq('status', 'completed')
+
+  return {
+    ...data,
+    pending_redemptions: pendingRedemptions || [],
+    vouchers: completedVouchers || [],
+  }
 }
 
 export const useGetMembershipById = (membershipId: string) => {
