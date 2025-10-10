@@ -9,8 +9,8 @@ Built on **Cardano Blockchain**, MitraChain enables transparent, secure, and rew
 💠 **Transparent. Secure. Rewarding.**  
 
 ## **Now Online**
-- **[User Website](mitrachain.store)**
-- **[SMBs/Admin Website](admin.mitrachain.store)**
+- **[Customer App](mitrachain.store)**
+- **[Business Dashboard](admin.mitrachain.store)**
 
 ---
 
