@@ -3,10 +3,14 @@
 ![MitraChain Banner](https://zhwegqlelhhdirlmilcq.supabase.co/storage/v1/object/public/LOGO/banner.png)
 
 ## ✨ Overview  
-**MitraChain** is a revolutionary Web3 membership platform that bridges the gap between **UMKM (Small Businesses)** and their **customers**.  
-Built on **Cardano Blockchain**, MitraChain enables transparent, secure, and rewarding membership experiences — empowering local communities with decentralized technology.  
+**[MitraChain](mitrachain.store)** is a revolutionary Web3 membership platform that bridges the gap between **UMKM (Small Businesses)** and their **customers**.  
+Built on **Cardano Blockchain**, MitraChain enables transparent, secure, and rewarding membership experiences — empowering local communities with decentralized technology.
 
 💠 **Transparent. Secure. Rewarding.**  
+
+## **Now Online**
+- **[User Website](mitrachain.store)**
+- **[SMBs/Admin Website](admin.mitrachain.store)**
 
 ---
 
