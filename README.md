@@ -6,6 +6,8 @@
 **[MitraChain](mitrachain.store)** is a revolutionary Web3 membership platform that bridges the gap between **UMKM (Small Businesses)** and their **customers**.  
 Built on **Cardano Blockchain**, MitraChain enables transparent, secure, and rewarding membership experiences — empowering local communities with decentralized technology.
 
+- **[MitraChain Pitch Deck](http://uns.id/PitchDeck-MitraChain)**
+
 💠 **Transparent. Secure. Rewarding.**  
 
 ## **Now Online**
