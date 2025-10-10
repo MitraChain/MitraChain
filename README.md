@@ -37,7 +37,7 @@ Empowering local **UMKM** businesses to build lasting relationships with their c
 | 💅 UI Components | [shadcn/ui](https://ui.shadcn.com/) + [TailwindCSS](https://tailwindcss.com/) |
 | 🗃️ Backend | [Supabase](https://supabase.com/) (Database + Auth + Storage) |
 | 💳 Payment Gateway | [Midtrans](https://midtrans.com/) |
-| 🪙 Blockchain Integration | [Cardano Network](https://cardano.org/) + [NMKR API](https://www.nmkr.io/) + [Blockfrost](https://blockfrost.io/) |
+| 🪙 Blockchain Integration | Lucid Cardano + [Cardano Network](https://cardano.org/) + [NMKR API](https://www.nmkr.io/) + [Blockfrost](https://blockfrost.io/) |
 | ⚙️ Structure | Monorepo (TurboRepo / Nx) |
 
 ---
